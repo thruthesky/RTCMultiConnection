@@ -125,7 +125,7 @@ app = app.listen(port, process.env.IP || '0.0.0.0', function() {
 });
 
 var vc = require('../video-center-3.2-server.js');
-require('./Signaling-Server.js')(app, function(socket) {
+require('./Signaling-Server.js')(app, function(socket, io) {
     try {
         var params = socket.handshake.query;
 
