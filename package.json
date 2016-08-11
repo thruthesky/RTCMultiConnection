@@ -40,8 +40,9 @@
     "muaz-khan"
   ],
   "dependencies": {
+    "extend": "^3.0.0",
     "socket.io": "0.9.17",
-    "underscore": "^1.8.3"
+    "util": "^0.10.3"
   },
   "analyze": false,
   "license": "MIT",

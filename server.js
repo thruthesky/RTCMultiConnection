@@ -19,6 +19,7 @@ var server = require(isUseHTTPs ? 'https' : 'http'),
     path = require('path'),
     fs = require('fs');
 
+
 function serverHandler(request, response) {
     var uri = url.parse(request.url).pathname,
         filename = path.join(process.cwd(), uri);
