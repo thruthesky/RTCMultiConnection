@@ -1,10 +1,6 @@
-/// <reference path="typings/globals/node/index.d.ts" />
-/// <reference path="typings/globals/socket.io/index.d.ts" />
-/// import fs = require('fs');
-/// import oo = require('socket.io');
 var VideoCenterServer = (function () {
     function VideoCenterServer() {
-        console.log("VideoCenterServer::constructor()");
+        console.log("VideoCenterServer::constructor() ...");
     }
     VideoCenterServer.prototype.listen = function (socket, io) {
         console.log('VideoCenterServer::listen()');

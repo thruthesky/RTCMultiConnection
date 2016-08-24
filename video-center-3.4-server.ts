@@ -6,7 +6,8 @@ class VideoCenterServer {
     private socket: any;
     private io: any;
     constructor() {
-        console.log("VideoCenterServer::constructor()");    }
+        console.log("VideoCenterServer::constructor() ...");
+    }
     listen(socket, io) {
         console.log('VideoCenterServer::listen()');
         this.socket = socket;
