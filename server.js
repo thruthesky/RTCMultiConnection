@@ -125,8 +125,10 @@ app = app.listen(port, process.env.IP || '0.0.0.0', function() {
     console.log('Server listening at ' + (isUseHTTPs ? 'https' : 'http') + '://' + addr.address + ':' + addr.port);
 });
 
-var VideoCenterServer = require('../js/video-center-3.4-server.js');
-console.log(VideoCenterServer);
+
+var vcs = require('./video-center-3.4-server.js');
+var vc = new vcs();
+
 require('./Signaling-Server.js')(app, function(socket, io) {
     try {
         var params = socket.handshake.query;
@@ -149,5 +151,5 @@ require('./Signaling-Server.js')(app, function(socket, io) {
             } catch (e) {}
         });
     } catch (e) {}
-    VideoCenterServer.listen( socket, io );
+    vc.listen( socket, io );
 });

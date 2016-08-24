@@ -1,0 +1,21 @@
+{
+  "exclude": [
+    "node_modules",
+    "demos",
+    "dev",
+    "docs",
+    "fake-keys",
+    "v2.2.2"
+  ],
+  "compilerOptions": {
+    "module" : "commonjs",
+    "outDir": ".",
+    "target": "es5",
+    "watch": true,
+    "sourceMap": true,
+    "declaration": false,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "noLib": false
+  }
+}
