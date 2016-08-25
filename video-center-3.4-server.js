@@ -36,7 +36,7 @@ var VideoCenterServer = (function () {
     };
     VideoCenterServer.prototype.updateUsername = function (socket, username, callback) {
         var user = this.setUsername(socket, username);
-        callback(user);
+        callback(username);
     };
     VideoCenterServer.prototype.pong = function (callback) {
         console.log("I got ping. pong it.");

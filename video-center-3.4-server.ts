@@ -58,8 +58,8 @@ class VideoCenterServer {
     }
 
     updateUsername ( socket: any, username: string, callback: any ) : void {
-        let user = this.setUsername( socket, username );
-        callback( user );
+        let user = this.setUsername( socket, username );        
+        callback( username );
         // vc.io.sockets.emit('update-username', user );
     }
 
