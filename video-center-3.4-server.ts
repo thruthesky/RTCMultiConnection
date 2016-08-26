@@ -19,16 +19,29 @@ class VideoCenterServer {
     constructor() {
         console.log("VideoCenterServer::constructor() ...");
     }
+    /*-----Listener---*/
     listen(socket, io) {
-        console.log('VideoCenterServer::listen()');
+        // console.log('VideoCenterServer::listen()');
+        console.log('Someone Connected.');
         this.io = io;
-        this.addUser( socket );
-        socket.on('ping', this.pong )
+        this.addUser( socket );      
+        // socket.on('ping', this.pong );        
+        socket.on('disconnect', () => {
+            this.disconnect( socket );
+        });
         socket.on('update-username', ( username, callback ) => {
             this.updateUsername( socket, username, callback );
          } );
     }
-    
+    pong ( callback ) {
+        console.log("I got ping. pong it.");
+        callback('pong');
+    }
+    disconnect ( socket:any ) : void {        
+        this.removeUser( socket.id );
+        console.log("Someone Disconnected.");   
+        // vc.io.sockets.emit('disconnect', socket.id);      
+    }
     addUser ( socket: any ) : User {
         let user: User = <User>{};
         user.name = 'Anonymous';
@@ -41,13 +54,7 @@ class VideoCenterServer {
         this.Users[ user.socket ] = user;
         return this.Users[ user.socket ];
     }
-
-    /**
-     * @code
-     *      var user = this.getUser( socket );
-     * @endcode
-     * 
-     */
+    
     getUser ( socket: any ) : User {
         return this.Users[ socket.id ]
     }
@@ -62,10 +69,9 @@ class VideoCenterServer {
         callback( username );
         // vc.io.sockets.emit('update-username', user );
     }
-
-    pong ( callback ) {
-        console.log("I got ping. pong it.");
-        callback('pong');
-    }
+    removeUser ( id: string ) : void {
+        delete this.Users[ id ]
+    }  
+   
 }
 exports = module.exports = VideoCenterServer;

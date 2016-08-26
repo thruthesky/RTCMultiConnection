@@ -6,13 +6,23 @@ var VideoCenterServer = (function () {
     }
     VideoCenterServer.prototype.listen = function (socket, io) {
         var _this = this;
-        console.log('VideoCenterServer::listen()');
+        console.log('Someone Connected.');
         this.io = io;
         this.addUser(socket);
-        socket.on('ping', this.pong);
+        socket.on('disconnect', function () {
+            _this.disconnect(socket);
+        });
         socket.on('update-username', function (username, callback) {
             _this.updateUsername(socket, username, callback);
         });
+    };
+    VideoCenterServer.prototype.pong = function (callback) {
+        console.log("I got ping. pong it.");
+        callback('pong');
+    };
+    VideoCenterServer.prototype.disconnect = function (socket) {
+        this.removeUser(socket.id);
+        console.log("Someone Disconnected.");
     };
     VideoCenterServer.prototype.addUser = function (socket) {
         var user = {};
@@ -38,9 +48,8 @@ var VideoCenterServer = (function () {
         var user = this.setUsername(socket, username);
         callback(username);
     };
-    VideoCenterServer.prototype.pong = function (callback) {
-        console.log("I got ping. pong it.");
-        callback('pong');
+    VideoCenterServer.prototype.removeUser = function (id) {
+        delete this.Users[id];
     };
     return VideoCenterServer;
 }());
