@@ -18,6 +18,9 @@ var VideoCenterServer = (function () {
         socket.on('update-username', function (username, callback) {
             _this.updateUsername(socket, username, callback);
         });
+        socket.on('create-room', function (roomname, callback) {
+            _this.createRoom(socket, roomname, callback);
+        });
         socket.on('send-message', function (message, callback) {
             _this.sendMessage(io, socket, message, callback);
         });
@@ -66,6 +69,15 @@ var VideoCenterServer = (function () {
         var user = this.setUsername(socket, username);
         console.log(oldusername + " change it's name to " + username);
         callback(username);
+    };
+    VideoCenterServer.prototype.createRoom = function (socket, roomname, callback) {
+        var user = this.getUser(socket);
+        socket.leave(user.room);
+        console.log(user.name + "left :" + user.room);
+        user.room = roomname;
+        this.setUser(user);
+        console.log(user.name + ' created and joined :' + user.room);
+        callback(user.room);
     };
     VideoCenterServer.prototype.sendMessage = function (io, socket, message, callback) {
         var user = this.getUser(socket);
