@@ -32,6 +32,9 @@ class VideoCenterServer {
         socket.on('join-lobby', ( callback:any ) => {
             this.joinLobby( socket, callback );            
         } );
+        socket.on('join-room', ( roomname:string, callback:any ) => {
+            this.joinRoom( socket, roomname, callback );            
+        } );
         socket.on('update-username', ( username: string, callback:any ) => {
             this.updateUsername( socket, username, callback );            
         } );
@@ -132,6 +135,13 @@ class VideoCenterServer {
         user.room = lobbyRoomName;
         this.setUser( user );         
         socket.join( lobbyRoomName ); 
+        callback();
+    }
+     private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
+        var user = this.getUser( socket );  
+        user.room = roomname;
+        this.setUser( user );         
+        socket.join( roomname ); 
         callback();
     }
 }

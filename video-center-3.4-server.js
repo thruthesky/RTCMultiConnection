@@ -15,6 +15,9 @@ var VideoCenterServer = (function () {
         socket.on('join-lobby', function (callback) {
             _this.joinLobby(socket, callback);
         });
+        socket.on('join-room', function (roomname, callback) {
+            _this.joinRoom(socket, roomname, callback);
+        });
         socket.on('update-username', function (username, callback) {
             _this.updateUsername(socket, username, callback);
         });
@@ -101,6 +104,13 @@ var VideoCenterServer = (function () {
         user.room = lobbyRoomName;
         this.setUser(user);
         socket.join(lobbyRoomName);
+        callback();
+    };
+    VideoCenterServer.prototype.joinRoom = function (socket, roomname, callback) {
+        var user = this.getUser(socket);
+        user.room = roomname;
+        this.setUser(user);
+        socket.join(roomname);
         callback();
     };
     return VideoCenterServer;
