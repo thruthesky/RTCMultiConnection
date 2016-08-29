@@ -5,7 +5,8 @@
     "dev",
     "docs",
     "fake-keys",
-    "v2.2.2"
+    "v2.2.2",
+    "typings"
   ],
   "compilerOptions": {
     "module" : "commonjs",
