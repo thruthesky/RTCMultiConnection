@@ -30,24 +30,24 @@ class VideoCenterServer {
             this.disconnect( socket );
         } );
         socket.on('join-lobby', ( callback:any ) => {
-            this.joinLobby( socket, callback );
-            
+            this.joinLobby( socket, callback );            
         } );
         socket.on('update-username', ( username: string, callback:any ) => {
-            this.updateUsername( socket, username, callback );
-            
+            this.updateUsername( socket, username, callback );            
         } );
         socket.on('create-room', ( roomname: string, callback:any ) => {
-            this.createRoom( socket, roomname, callback );
-            
+            this.createRoom( socket, roomname, callback );            
         } );
         socket.on('send-message', ( message: string, callback:any ) => {
-            this.sendMessage( io, socket, message, callback );
-            
+            this.sendMessage( io, socket, message, callback );            
         } );
+        socket.on('leave-room', ( callback: any ) => {
+            this.leaveRoom( socket, callback );
+        } ); 
         socket.on('log-out', ( callback: any ) => {
             this.logout( socket, callback );
         } ); 
+        
     }
     
     private pong ( callback: any ) {
@@ -69,7 +69,7 @@ class VideoCenterServer {
         console.log(user.name + ' has logged out.' );              
         callback();
     }
-
+   
     private addUser ( socket: any ) : User {
         let user: User = <User>{};
         user.name = 'Anonymous';
@@ -111,19 +111,26 @@ class VideoCenterServer {
         callback( user.room );
         // vc.io.sockets.emit('create-room', user );
     }
-
+    private leaveRoom ( socket: any, callback: any ) : void {
+        var user = this.getUser( socket );        
+        socket.leave( user.room );           
+        console.log(user.name + ' leave the room: '+ user.room );                 
+        callback();      
+    }
     private sendMessage ( io:any, socket: any, message: string, callback: any ) : void {
         let user = this.getUser( socket );        
         io.sockets["in"]( user.room ).emit('get-message', { message: message, name: user.name, room: user.room } );  
-        callback( message );
-      
+        callback( user );      
     }
     
     private removeUser ( id: string ) : void {
         delete this.Users[ id ]
     } 
 
-    private joinLobby ( socket: any,  callback: any ) : void {        
+    private joinLobby ( socket: any,  callback: any ) : void {   
+        var user = this.getUser( socket );  
+        user.room = lobbyRoomName;
+        this.setUser( user );         
         socket.join( lobbyRoomName ); 
         callback();
     }

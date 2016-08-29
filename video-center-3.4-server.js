@@ -24,6 +24,9 @@ var VideoCenterServer = (function () {
         socket.on('send-message', function (message, callback) {
             _this.sendMessage(io, socket, message, callback);
         });
+        socket.on('leave-room', function (callback) {
+            _this.leaveRoom(socket, callback);
+        });
         socket.on('log-out', function (callback) {
             _this.logout(socket, callback);
         });
@@ -79,15 +82,24 @@ var VideoCenterServer = (function () {
         console.log(user.name + ' created and joined :' + user.room);
         callback(user.room);
     };
+    VideoCenterServer.prototype.leaveRoom = function (socket, callback) {
+        var user = this.getUser(socket);
+        socket.leave(user.room);
+        console.log(user.name + ' leave the room: ' + user.room);
+        callback();
+    };
     VideoCenterServer.prototype.sendMessage = function (io, socket, message, callback) {
         var user = this.getUser(socket);
         io.sockets["in"](user.room).emit('get-message', { message: message, name: user.name, room: user.room });
-        callback(message);
+        callback(user);
     };
     VideoCenterServer.prototype.removeUser = function (id) {
         delete this.Users[id];
     };
     VideoCenterServer.prototype.joinLobby = function (socket, callback) {
+        var user = this.getUser(socket);
+        user.room = lobbyRoomName;
+        this.setUser(user);
         socket.join(lobbyRoomName);
         callback();
     };
