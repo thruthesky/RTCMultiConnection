@@ -41,8 +41,8 @@ class VideoCenterServer {
         socket.on('create-room', ( roomname: string, callback:any ) => {
             this.createRoom( socket, roomname, callback );            
         } );
-        socket.on('send-message', ( message: string, callback:any ) => {
-            this.sendMessage( io, socket, message, callback );            
+        socket.on('chat-message', ( message: string, callback:any ) => {
+            this.chatMessage( io, socket, message, callback );            
         } );
         socket.on('leave-room', ( callback: any ) => {
             this.leaveRoom( socket, callback );
@@ -120,10 +120,10 @@ class VideoCenterServer {
         console.log(user.name + ' leave the room: '+ user.room );                 
         callback();      
     }
-    private sendMessage ( io:any, socket: any, message: string, callback: any ) : void {
+    private chatMessage ( io:any, socket: any, message: string, callback: any ) : void {
         let user = this.getUser( socket );        
-        io.sockets["in"]( user.room ).emit('get-message', { message: message, name: user.name, room: user.room } );  
-        callback( user );      
+        io.sockets["in"]( user.room ).emit('chat-message', { message: message, name: user.name, room: user.room } );
+        callback( user );
     }
     
     private removeUser ( id: string ) : void {
