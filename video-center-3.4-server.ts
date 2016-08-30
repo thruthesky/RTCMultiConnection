@@ -42,6 +42,7 @@ class VideoCenterServer {
             this.createRoom( socket, roomname, callback );            
         } );
         socket.on('chat-message', ( message: string, callback:any ) => {
+            console.log( message );
             this.chatMessage( io, socket, message, callback );            
         } );
         socket.on('leave-room', ( callback: any ) => {
