@@ -15,7 +15,7 @@ const lobbyRoomName = 'Lobby';
 
 class VideoCenterServer {
     private io: any;
-    Users: Array<User> = new Array();
+    private users: Array<User> = new Array();
     constructor() {
         console.log("VideoCenterServer::constructor() ...");
     }
@@ -39,9 +39,10 @@ class VideoCenterServer {
             this.updateUsername( socket, username, callback );            
         } );
         socket.on('create-room', ( roomname: string, callback:any ) => {
-            this.createRoom( socket, roomname, callback );            
+            this.createRoom( socket, roomname, callback );
         } );
         socket.on('chat-message', ( message: string, callback:any ) => {
+            console.log('chat-message. callback: ', callback);
             console.log( message );
             this.chatMessage( io, socket, message, callback );            
         } );
@@ -50,7 +51,11 @@ class VideoCenterServer {
         } ); 
         socket.on('log-out', ( callback: any ) => {
             this.logout( socket, callback );
-        } ); 
+        } );
+        socket.on('user-list', ( callback: any ) => {
+            console.log( 'callback:', callback);
+            this.userList( socket, callback );
+        } );
         
     }
     
@@ -79,17 +84,17 @@ class VideoCenterServer {
         user.name = 'Anonymous';
         user.room = lobbyRoomName;
         user.socket = socket.id;
-        this.Users[ socket.id ] = user;         
-        return this.Users[ socket.id ];
+        this.users[ socket.id ] = user;         
+        return this.users[ socket.id ];
     }
 
     private setUser ( user: User ) : User {
-        this.Users[ user.socket ] = user;
-        return this.Users[ user.socket ];
+        this.users[ user.socket ] = user;
+        return this.users[ user.socket ];
     }
     
     private getUser ( socket: any ) : User {
-        return this.Users[ socket.id ]
+        return this.users[ socket.id ]
     }
     private setUsername ( socket: any, username: string ) : User {
         let user = this.getUser( socket );
@@ -128,7 +133,7 @@ class VideoCenterServer {
     }
     
     private removeUser ( id: string ) : void {
-        delete this.Users[ id ]
+        delete this.users[ id ]
     } 
 
     private joinLobby ( socket: any,  callback: any ) : void {   
@@ -144,6 +149,12 @@ class VideoCenterServer {
         this.setUser( user );         
         socket.join( roomname ); 
         callback();
+    }
+
+    private userList( socket: any, callback: any ) {
+        console.log('userList()', this.users);
+        callback( this.users );
+        console.log( callback );
     }
 }
 exports = module.exports = VideoCenterServer;

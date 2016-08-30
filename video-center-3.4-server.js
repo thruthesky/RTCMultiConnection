@@ -1,7 +1,7 @@
 var lobbyRoomName = 'Lobby';
 var VideoCenterServer = (function () {
     function VideoCenterServer() {
-        this.Users = new Array();
+        this.users = new Array();
         console.log("VideoCenterServer::constructor() ...");
     }
     VideoCenterServer.prototype.listen = function (socket, io) {
@@ -25,6 +25,7 @@ var VideoCenterServer = (function () {
             _this.createRoom(socket, roomname, callback);
         });
         socket.on('chat-message', function (message, callback) {
+            console.log('chat-message. callback: ', callback);
             console.log(message);
             _this.chatMessage(io, socket, message, callback);
         });
@@ -33,6 +34,10 @@ var VideoCenterServer = (function () {
         });
         socket.on('log-out', function (callback) {
             _this.logout(socket, callback);
+        });
+        socket.on('user-list', function (callback) {
+            console.log('callback:', callback);
+            _this.userList(socket, callback);
         });
     };
     VideoCenterServer.prototype.pong = function (callback) {
@@ -55,15 +60,15 @@ var VideoCenterServer = (function () {
         user.name = 'Anonymous';
         user.room = lobbyRoomName;
         user.socket = socket.id;
-        this.Users[socket.id] = user;
-        return this.Users[socket.id];
+        this.users[socket.id] = user;
+        return this.users[socket.id];
     };
     VideoCenterServer.prototype.setUser = function (user) {
-        this.Users[user.socket] = user;
-        return this.Users[user.socket];
+        this.users[user.socket] = user;
+        return this.users[user.socket];
     };
     VideoCenterServer.prototype.getUser = function (socket) {
-        return this.Users[socket.id];
+        return this.users[socket.id];
     };
     VideoCenterServer.prototype.setUsername = function (socket, username) {
         var user = this.getUser(socket);
@@ -98,7 +103,7 @@ var VideoCenterServer = (function () {
         callback(user);
     };
     VideoCenterServer.prototype.removeUser = function (id) {
-        delete this.Users[id];
+        delete this.users[id];
     };
     VideoCenterServer.prototype.joinLobby = function (socket, callback) {
         var user = this.getUser(socket);
@@ -113,6 +118,11 @@ var VideoCenterServer = (function () {
         this.setUser(user);
         socket.join(roomname);
         callback();
+    };
+    VideoCenterServer.prototype.userList = function (socket, callback) {
+        console.log('userList()', this.users);
+        callback(this.users);
+        console.log(callback);
     };
     return VideoCenterServer;
 }());
