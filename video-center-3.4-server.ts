@@ -15,7 +15,7 @@ const lobbyRoomName = 'Lobby';
 
 class VideoCenterServer {
     private io: any;
-    private users: Array<User> = new Array();
+    public users = {} as User;
     constructor() {
         console.log("VideoCenterServer::constructor() ...");
     }
@@ -28,6 +28,11 @@ class VideoCenterServer {
         // socket.on('ping', this.pong );        
         socket.on('disconnect', () => {
             this.disconnect( socket );
+        } );
+        socket.on('user-list', ( callback:any ) => {
+            // this.joinLobby( socket, callback ); 
+            console.log( this.users );
+            callback( this.users );           
         } );
         socket.on('join-lobby', ( callback:any ) => {
             this.joinLobby( socket, callback );            
@@ -52,10 +57,10 @@ class VideoCenterServer {
         socket.on('log-out', ( callback: any ) => {
             this.logout( socket, callback );
         } );
-        socket.on('user-list', ( callback: any ) => {
-            console.log( 'callback:', callback);
-            this.userList( socket, callback );
-        } );
+        // socket.on('user-list', ( callback: any ) => {
+        //     console.log( 'callback:', callback);
+        //     this.userList( socket, callback );
+        // } );
         
     }
     
@@ -151,10 +156,6 @@ class VideoCenterServer {
         callback();
     }
 
-    private userList( socket: any, callback: any ) {
-        console.log('userList()', this.users);
-        callback( this.users );
-        console.log( callback );
-    }
+ 
 }
 exports = module.exports = VideoCenterServer;

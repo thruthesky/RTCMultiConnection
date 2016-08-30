@@ -1,7 +1,7 @@
 var lobbyRoomName = 'Lobby';
 var VideoCenterServer = (function () {
     function VideoCenterServer() {
-        this.users = new Array();
+        this.users = {};
         console.log("VideoCenterServer::constructor() ...");
     }
     VideoCenterServer.prototype.listen = function (socket, io) {
@@ -11,6 +11,10 @@ var VideoCenterServer = (function () {
         this.addUser(socket);
         socket.on('disconnect', function () {
             _this.disconnect(socket);
+        });
+        socket.on('user-list', function (callback) {
+            console.log(_this.users);
+            callback(_this.users);
         });
         socket.on('join-lobby', function (callback) {
             _this.joinLobby(socket, callback);
@@ -34,10 +38,6 @@ var VideoCenterServer = (function () {
         });
         socket.on('log-out', function (callback) {
             _this.logout(socket, callback);
-        });
-        socket.on('user-list', function (callback) {
-            console.log('callback:', callback);
-            _this.userList(socket, callback);
         });
     };
     VideoCenterServer.prototype.pong = function (callback) {
@@ -118,11 +118,6 @@ var VideoCenterServer = (function () {
         this.setUser(user);
         socket.join(roomname);
         callback();
-    };
-    VideoCenterServer.prototype.userList = function (socket, callback) {
-        console.log('userList()', this.users);
-        callback(this.users);
-        console.log(callback);
     };
     return VideoCenterServer;
 }());
