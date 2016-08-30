@@ -57,10 +57,10 @@ class VideoCenterServer {
         socket.on('log-out', ( callback: any ) => {
             this.logout( socket, callback );
         } );
-        // socket.on('user-list', ( callback: any ) => {
-        //     console.log( 'callback:', callback);
-        //     this.userList( socket, callback );
-        // } );
+        socket.on('user-list', ( callback: any ) => {
+             console.log( 'callback:', callback);
+             this.userList( socket, callback );
+        } );
         
     }
     
@@ -154,6 +154,12 @@ class VideoCenterServer {
         this.setUser( user );         
         socket.join( roomname ); 
         callback();
+    }
+
+    private userList( socket: any, callback: any ) {
+
+        callback( JSON.stringify( this.users ) );
+
     }
 
  
