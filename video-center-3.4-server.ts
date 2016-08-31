@@ -39,7 +39,7 @@ class VideoCenterServer {
             this.updateUsername( io, socket, username, callback );            
         } );
         socket.on('create-room', ( roomname: string, callback:any ) => {
-            this.createRoom( socket, roomname, callback );
+            this.createRoom( io, socket, roomname, callback );
         } );
         socket.on('chat-message', ( message: string, callback:any ) => {            
             this.chatMessage( io, socket, message, callback );            
@@ -108,7 +108,7 @@ class VideoCenterServer {
         callback( username );        
         io.sockets.emit('update-username', user_info )
     }
-    private createRoom ( socket: any, roomname: string, callback: any ) : void {
+    private createRoom ( io:any, socket: any, roomname: string, callback: any ) : void {
         let user = this.getUser( socket );  
         socket.leave( user.room );
         console.log(user.name + "left :" + user.room );
@@ -116,7 +116,7 @@ class VideoCenterServer {
         this.setUser( user );
         console.log( user.name + ' created and joined :' + user.room );
         callback( user.room );
-        // vc.io.sockets.emit('create-room', user );
+        io.sockets.emit('create-room', user );      
     }
     private leaveRoom ( socket: any, callback: any ) : void {
         var user = this.getUser( socket );        
