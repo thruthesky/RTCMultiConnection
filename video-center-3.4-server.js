@@ -141,7 +141,7 @@ var VideoCenterServer = (function () {
         user.room = roomname;
         this.setUser(user);
         socket.join(roomname);
-        callback();
+        callback(roomname);
     };
     VideoCenterServer.prototype.userList = function (socket, callback) {
         callback(this.users);

@@ -171,7 +171,7 @@ class VideoCenterServer {
         user.room = roomname;
         this.setUser( user );         
         socket.join( roomname ); 
-        callback();
+        callback( roomname );
     }
 
     private userList( socket: any, callback: any ) {
