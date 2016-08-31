@@ -117,7 +117,7 @@ var VideoCenterServer = (function () {
         callback();
     };
     VideoCenterServer.prototype.userList = function (socket, callback) {
-        callback(JSON.stringify(this.users));
+        callback(this.users);
     };
     return VideoCenterServer;
 }());

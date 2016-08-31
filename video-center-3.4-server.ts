@@ -150,7 +150,8 @@ class VideoCenterServer {
 
     private userList( socket: any, callback: any ) {
 
-        callback( JSON.stringify( this.users ) );
+        // callback( JSON.stringify( this.users ) );
+        callback(  this.users  );
 
     }
 
