@@ -12,10 +12,6 @@ var VideoCenterServer = (function () {
         socket.on('disconnect', function () {
             _this.disconnect(socket);
         });
-        socket.on('user-list', function (callback) {
-            console.log(_this.users);
-            callback(_this.users);
-        });
         socket.on('join-lobby', function (callback) {
             _this.joinLobby(socket, callback);
         });
@@ -29,8 +25,6 @@ var VideoCenterServer = (function () {
             _this.createRoom(socket, roomname, callback);
         });
         socket.on('chat-message', function (message, callback) {
-            console.log('chat-message. callback: ', callback);
-            console.log(message);
             _this.chatMessage(io, socket, message, callback);
         });
         socket.on('leave-room', function (callback) {
@@ -38,6 +32,9 @@ var VideoCenterServer = (function () {
         });
         socket.on('log-out', function (callback) {
             _this.logout(socket, callback);
+        });
+        socket.on('user-list', function (callback) {
+            _this.userList(socket, callback);
         });
     };
     VideoCenterServer.prototype.pong = function (callback) {
@@ -118,6 +115,9 @@ var VideoCenterServer = (function () {
         this.setUser(user);
         socket.join(roomname);
         callback();
+    };
+    VideoCenterServer.prototype.userList = function (socket, callback) {
+        callback(JSON.stringify(this.users));
     };
     return VideoCenterServer;
 }());

@@ -28,12 +28,7 @@ class VideoCenterServer {
         // socket.on('ping', this.pong );        
         socket.on('disconnect', () => {
             this.disconnect( socket );
-        } );
-        socket.on('user-list', ( callback:any ) => {
-            // this.joinLobby( socket, callback ); 
-            console.log( this.users );
-            callback( this.users );           
-        } );
+        } );      
         socket.on('join-lobby', ( callback:any ) => {
             this.joinLobby( socket, callback );            
         } );
@@ -46,9 +41,7 @@ class VideoCenterServer {
         socket.on('create-room', ( roomname: string, callback:any ) => {
             this.createRoom( socket, roomname, callback );
         } );
-        socket.on('chat-message', ( message: string, callback:any ) => {
-            console.log('chat-message. callback: ', callback);
-            console.log( message );
+        socket.on('chat-message', ( message: string, callback:any ) => {            
             this.chatMessage( io, socket, message, callback );            
         } );
         socket.on('leave-room', ( callback: any ) => {
@@ -57,8 +50,7 @@ class VideoCenterServer {
         socket.on('log-out', ( callback: any ) => {
             this.logout( socket, callback );
         } );
-        socket.on('user-list', ( callback: any ) => {
-             console.log( 'callback:', callback);
+        socket.on('user-list', ( callback: any ) => {    
              this.userList( socket, callback );
         } );
         
