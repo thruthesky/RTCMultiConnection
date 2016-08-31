@@ -30,7 +30,7 @@ var VideoCenterServer = (function () {
             _this.chatMessage(io, socket, message, callback);
         });
         socket.on('leave-room', function (callback) {
-            _this.leaveRoom(socket, callback);
+            _this.leaveRoom(io, socket, callback);
         });
         socket.on('log-out', function (callback) {
             _this.logout(io, socket, callback);
@@ -47,6 +47,13 @@ var VideoCenterServer = (function () {
         callback('pong');
     };
     VideoCenterServer.prototype.disconnect = function (io, socket) {
+        var user = this.getUser(socket);
+        socket.leave(user.room);
+        if (user.room != "Lobby") {
+            this.leaveRoom(io, socket, function () {
+                console.log("You left and disconnect");
+            });
+        }
         this.removeUser(socket.id);
         console.log("Someone Disconnected.");
         io.sockets.emit('disconnect', socket.id);
@@ -97,11 +104,22 @@ var VideoCenterServer = (function () {
         callback(user.room);
         io.sockets.emit('create-room', user);
     };
-    VideoCenterServer.prototype.leaveRoom = function (socket, callback) {
+    VideoCenterServer.prototype.leaveRoom = function (io, socket, callback) {
         var user = this.getUser(socket);
         socket.leave(user.room);
         console.log(user.name + ' leave the room: ' + user.room);
-        callback();
+        if (this.is_room_exist(io, user.room)) {
+            console.log("room exists. don't broadcast for room delete");
+            callback();
+        }
+        else if (this.get_room_users(io, user.room)) {
+            console.log("user exists. don't broadcast for room delete");
+            callback();
+        }
+        else {
+            this.io.sockets.emit('remove-room', user.room);
+            callback();
+        }
     };
     VideoCenterServer.prototype.chatMessage = function (io, socket, message, callback) {
         var user = this.getUser(socket);
@@ -131,15 +149,13 @@ var VideoCenterServer = (function () {
     VideoCenterServer.prototype.roomList = function (io, socket, callback) {
         callback(this.get_room_list(io));
     };
-    VideoCenterServer.prototype.get_room_list = function (io) {
+    VideoCenterServer.prototype.get_room_list = function (io, opts) {
         var defaults = {
             room: false,
             user: false
         };
-        var o;
-        o = extend(defaults, o);
+        var o = extend(defaults, opts);
         var rooms = io.sockets.manager.rooms;
-        console.log("rooms:" + rooms);
         var roomList = [];
         var room;
         var re;
@@ -153,7 +169,7 @@ var VideoCenterServer = (function () {
             if (o.user) {
                 re = {
                     roomname: roomname,
-                    users: this.get_room_users(roomname)
+                    users: this.get_room_users(io, roomname)
                 };
             }
             else {
@@ -167,9 +183,9 @@ var VideoCenterServer = (function () {
         }
         return roomList;
     };
-    VideoCenterServer.prototype.get_room_users = function (roomname) {
-        if (this.is_room_exist(roomname)) {
-            var room = this.get_room(roomname);
+    VideoCenterServer.prototype.get_room_users = function (io, roomname) {
+        if (this.is_room_exist(io, roomname)) {
+            var room = this.get_room(io, roomname);
             if (room) {
                 var users = [];
                 for (var socket_id in room) {
@@ -183,12 +199,12 @@ var VideoCenterServer = (function () {
         }
         return 0;
     };
-    VideoCenterServer.prototype.is_room_exist = function (roomname) {
-        var re = this.get_room_list({ room: roomname });
+    VideoCenterServer.prototype.is_room_exist = function (io, roomname) {
+        var re = this.get_room_list(io, { room: roomname });
         return re.length;
     };
-    VideoCenterServer.prototype.get_room = function (roomname) {
-        var rooms = this.io.sockets.manager.rooms;
+    VideoCenterServer.prototype.get_room = function (io, roomname) {
+        var rooms = io.sockets.manager.rooms;
         return rooms[roomname];
     };
     return VideoCenterServer;

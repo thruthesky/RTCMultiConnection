@@ -46,7 +46,7 @@ class VideoCenterServer {
             this.chatMessage( io, socket, message, callback );            
         } );
         socket.on('leave-room', ( callback: any ) => {
-            this.leaveRoom( socket, callback );
+            this.leaveRoom( io, socket, callback );
         } ); 
         socket.on('log-out', ( callback: any ) => {
             this.logout( io, socket, callback );
@@ -65,10 +65,17 @@ class VideoCenterServer {
         callback('pong');
     }
 
-    private disconnect ( io:any, socket:any ) : void {        
+    private disconnect ( io:any, socket:any ) : void { 
+        var user = this.getUser( socket );  
+        socket.leave( user.room );
+            if(user.room!="Lobby"){              
+                this.leaveRoom(io, socket, ()=>{
+                    console.log("You left and disconnect");
+                });
+            }               
         this.removeUser( socket.id );
         console.log("Someone Disconnected.");   
-         io.sockets.emit('disconnect', socket.id );    
+        io.sockets.emit('disconnect', socket.id );    
     }
 
     private logout ( io:any, socket: any, callback: any ) : void {
@@ -122,11 +129,25 @@ class VideoCenterServer {
         callback( user.room );
         io.sockets.emit('create-room', user );      
     }
-    private leaveRoom ( socket: any, callback: any ) : void {
+    private leaveRoom ( io:any, socket: any, callback: any ) : void {
         var user = this.getUser( socket );        
         socket.leave( user.room );           
-        console.log(user.name + ' leave the room: '+ user.room );                 
-        callback();      
+        console.log(user.name + ' leave the room: '+ user.room );     
+        if ( this.is_room_exist( io, user.room ) ) {
+            // room exist..
+            console.log("room exists. don't broadcast for room delete");
+            callback();   
+        }
+        else if ( this.get_room_users( io, user.room ) ) {
+            // room exists...
+            console.log("user exists. don't broadcast for room delete");
+            callback();   
+        }
+        else {
+            this.io.sockets.emit('remove-room', user.room );
+            callback();   
+        }            
+           
     }
     private chatMessage ( io:any, socket: any, message: string, callback: any ) : void {
         let user = this.getUser( socket );        
@@ -160,15 +181,13 @@ class VideoCenterServer {
     private roomList( io:any, socket: any, callback: any ) {        
         callback(  this.get_room_list(io)  );
     }
-    private get_room_list(io:any) {
-    var defaults = {
+    private get_room_list(io:any, opts?:any) {
+        var defaults = {
             room: false,
             user: false
         };
-        let o:any;
-        o = extend( defaults, o );
-        var rooms = io.sockets.manager.rooms;
-        console.log("rooms:"+rooms);
+        let o:any = extend( defaults, opts );        
+        var rooms = io.sockets.manager.rooms;       
         var roomList = [];
         var room;
         var re;
@@ -181,7 +200,7 @@ class VideoCenterServer {
             if ( o.user ) {
                 re = {
                     roomname: roomname,
-                    users: this.get_room_users( roomname )
+                    users: this.get_room_users( io, roomname )
                 }
             }
             else {
@@ -194,9 +213,9 @@ class VideoCenterServer {
         }
         return roomList;
     }
-    private get_room_users( roomname:any ):any {     
-        if ( this.is_room_exist( roomname ) ) {
-            let room:any = this.get_room( roomname );
+    private get_room_users( io:any, roomname:any ):any {     
+        if ( this.is_room_exist( io, roomname ) ) {
+            let room:any = this.get_room( io, roomname );
             if ( room ) {
                 var users = [];
                 for ( var socket_id in room ) {
@@ -209,12 +228,12 @@ class VideoCenterServer {
         }
         return 0;
     }
-    private is_room_exist(roomname:any) {
-        let re:any = this.get_room_list( {room: roomname} );
+    private is_room_exist(io:any, roomname:any) {
+        let re:any = this.get_room_list( io, {room: roomname} );
         return re.length;
     }
-    private get_room(roomname:any) {
-        let rooms:any = this.io.sockets.manager.rooms;
+    private get_room( io:any, roomname:any) {
+        let rooms:any = io.sockets.manager.rooms;
         return rooms[roomname];
     }
  
