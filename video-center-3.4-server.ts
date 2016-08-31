@@ -27,7 +27,7 @@ class VideoCenterServer {
         this.addUser( socket );      
         // socket.on('ping', this.pong );        
         socket.on('disconnect', () => {
-            this.disconnect( socket );
+            this.disconnect( io, socket );
         } );      
         socket.on('join-lobby', ( callback:any ) => {
             this.joinLobby( socket, callback );            
@@ -36,7 +36,7 @@ class VideoCenterServer {
             this.joinRoom( socket, roomname, callback );            
         } );
         socket.on('update-username', ( username: string, callback:any ) => {
-            this.updateUsername( socket, username, callback );            
+            this.updateUsername( io, socket, username, callback );            
         } );
         socket.on('create-room', ( roomname: string, callback:any ) => {
             this.createRoom( socket, roomname, callback );
@@ -48,7 +48,7 @@ class VideoCenterServer {
             this.leaveRoom( socket, callback );
         } ); 
         socket.on('log-out', ( callback: any ) => {
-            this.logout( socket, callback );
+            this.logout( io, socket, callback );
         } );
         socket.on('user-list', ( callback: any ) => {    
              this.userList( socket, callback );
@@ -61,16 +61,17 @@ class VideoCenterServer {
         callback('pong');
     }
 
-    private disconnect ( socket:any ) : void {        
+    private disconnect ( io:any, socket:any ) : void {        
         this.removeUser( socket.id );
         console.log("Someone Disconnected.");   
-        // vc.io.sockets.emit('disconnect', socket.id);      
+         io.sockets.emit('disconnect', socket.id );    
     }
 
-    private logout ( socket: any, callback: any ) : void {
+    private logout ( io:any, socket: any, callback: any ) : void {
         var user = this.getUser( socket );        
         socket.leave( user.room );     
         // vc.io.sockets.emit('log-out', socket);
+        io.sockets.emit('log-out', user.socket );
         this.removeUser( socket );
         console.log(user.name + ' has logged out.' );              
         callback();
@@ -99,13 +100,13 @@ class VideoCenterServer {
         return this.setUser( user );
     }
 
-    private updateUsername ( socket: any, username: string, callback: any ) : void {
+    private updateUsername ( io:any, socket: any, username: string, callback: any ) : void {
         let user_info = this.getUser( socket );  
         let oldusername = user_info.name;
         let user = this.setUsername( socket, username );            
         console.log(oldusername + " change it's name to "+username);    
-        callback( username );
-        // vc.io.sockets.emit('update-username', user );
+        callback( username );        
+        io.sockets.emit('update-username', user_info )
     }
     private createRoom ( socket: any, roomname: string, callback: any ) : void {
         let user = this.getUser( socket );  
@@ -149,7 +150,6 @@ class VideoCenterServer {
     }
 
     private userList( socket: any, callback: any ) {
-
         // callback( JSON.stringify( this.users ) );
         callback(  this.users  );
 

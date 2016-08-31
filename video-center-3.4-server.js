@@ -10,7 +10,7 @@ var VideoCenterServer = (function () {
         this.io = io;
         this.addUser(socket);
         socket.on('disconnect', function () {
-            _this.disconnect(socket);
+            _this.disconnect(io, socket);
         });
         socket.on('join-lobby', function (callback) {
             _this.joinLobby(socket, callback);
@@ -19,7 +19,7 @@ var VideoCenterServer = (function () {
             _this.joinRoom(socket, roomname, callback);
         });
         socket.on('update-username', function (username, callback) {
-            _this.updateUsername(socket, username, callback);
+            _this.updateUsername(io, socket, username, callback);
         });
         socket.on('create-room', function (roomname, callback) {
             _this.createRoom(socket, roomname, callback);
@@ -31,7 +31,7 @@ var VideoCenterServer = (function () {
             _this.leaveRoom(socket, callback);
         });
         socket.on('log-out', function (callback) {
-            _this.logout(socket, callback);
+            _this.logout(io, socket, callback);
         });
         socket.on('user-list', function (callback) {
             _this.userList(socket, callback);
@@ -41,13 +41,15 @@ var VideoCenterServer = (function () {
         console.log("I got ping. pong it.");
         callback('pong');
     };
-    VideoCenterServer.prototype.disconnect = function (socket) {
+    VideoCenterServer.prototype.disconnect = function (io, socket) {
         this.removeUser(socket.id);
         console.log("Someone Disconnected.");
+        io.sockets.emit('disconnect', socket.id);
     };
-    VideoCenterServer.prototype.logout = function (socket, callback) {
+    VideoCenterServer.prototype.logout = function (io, socket, callback) {
         var user = this.getUser(socket);
         socket.leave(user.room);
+        io.sockets.emit('log-out', user.socket);
         this.removeUser(socket);
         console.log(user.name + ' has logged out.');
         callback();
@@ -72,12 +74,13 @@ var VideoCenterServer = (function () {
         user.name = username;
         return this.setUser(user);
     };
-    VideoCenterServer.prototype.updateUsername = function (socket, username, callback) {
+    VideoCenterServer.prototype.updateUsername = function (io, socket, username, callback) {
         var user_info = this.getUser(socket);
         var oldusername = user_info.name;
         var user = this.setUsername(socket, username);
         console.log(oldusername + " change it's name to " + username);
         callback(username);
+        io.sockets.emit('update-username', user_info);
     };
     VideoCenterServer.prototype.createRoom = function (socket, roomname, callback) {
         var user = this.getUser(socket);
