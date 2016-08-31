@@ -1,8 +1,9 @@
 /// <reference path="typings/globals/node/index.d.ts" />
 /// <reference path="typings/globals/socket.io/index.d.ts" />
+/// <reference path="typings/globals/extend/index.d.ts" />
 /// import fs = require('fs');
 /// import oo = require('socket.io');
-
+import extend =require('extend');
 interface User {
     name: string;
     room: string;
@@ -52,6 +53,9 @@ class VideoCenterServer {
         } );
         socket.on('user-list', ( callback: any ) => {    
              this.userList( socket, callback );
+        } );
+        socket.on('room-list', ( callback: any ) => {    
+             this.roomList( io, socket, callback );
         } );
         
     }
@@ -152,9 +156,67 @@ class VideoCenterServer {
     private userList( socket: any, callback: any ) {
         // callback( JSON.stringify( this.users ) );
         callback(  this.users  );
-
     }
+    private roomList( io:any, socket: any, callback: any ) {        
+        callback(  this.get_room_list(io)  );
+    }
+    private get_room_list(io:any) {
+    var defaults = {
+            room: false,
+            user: false
+        };
+        let o:any;
+        o = extend( defaults, o );
+        var rooms = io.sockets.manager.rooms;
+        console.log("rooms:"+rooms);
+        var roomList = [];
+        var room;
+        var re;
+        for ( var roomname in rooms ) {
+            if ( ! rooms.hasOwnProperty( roomname ) ) continue;
+            if ( roomname == '' ) continue;
+            roomname = roomname.replace( /^\//, '' );
 
+            re = false;
+            if ( o.user ) {
+                re = {
+                    roomname: roomname,
+                    users: this.get_room_users( roomname )
+                }
+            }
+            else {
+                if ( o.room == false ) re = roomname;
+                else if ( o.room == roomname ) re = roomname;
+            }
+
+            if ( re ) roomList.push( re );
+
+        }
+        return roomList;
+    }
+    private get_room_users( roomname:any ):any {     
+        if ( this.is_room_exist( roomname ) ) {
+            let room:any = this.get_room( roomname );
+            if ( room ) {
+                var users = [];
+                for ( var socket_id in room ) {
+                    if ( ! room.hasOwnProperty( socket_id ) ) continue;
+                    var socket = room[ socket_id ]; 
+                    users.push( this.getUser( socket ) );
+                }
+                return users;
+            }
+        }
+        return 0;
+    }
+    private is_room_exist(roomname:any) {
+        let re:any = this.get_room_list( {room: roomname} );
+        return re.length;
+    }
+    private get_room(roomname:any) {
+        let rooms:any = this.io.sockets.manager.rooms;
+        return rooms[roomname];
+    }
  
 }
 exports = module.exports = VideoCenterServer;

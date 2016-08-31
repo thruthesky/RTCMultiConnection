@@ -1,3 +1,5 @@
+"use strict";
+var extend = require('extend');
 var lobbyRoomName = 'Lobby';
 var VideoCenterServer = (function () {
     function VideoCenterServer() {
@@ -35,6 +37,9 @@ var VideoCenterServer = (function () {
         });
         socket.on('user-list', function (callback) {
             _this.userList(socket, callback);
+        });
+        socket.on('room-list', function (callback) {
+            _this.roomList(io, socket, callback);
         });
     };
     VideoCenterServer.prototype.pong = function (callback) {
@@ -122,6 +127,69 @@ var VideoCenterServer = (function () {
     };
     VideoCenterServer.prototype.userList = function (socket, callback) {
         callback(this.users);
+    };
+    VideoCenterServer.prototype.roomList = function (io, socket, callback) {
+        callback(this.get_room_list(io));
+    };
+    VideoCenterServer.prototype.get_room_list = function (io) {
+        var defaults = {
+            room: false,
+            user: false
+        };
+        var o;
+        o = extend(defaults, o);
+        var rooms = io.sockets.manager.rooms;
+        console.log("rooms:" + rooms);
+        var roomList = [];
+        var room;
+        var re;
+        for (var roomname in rooms) {
+            if (!rooms.hasOwnProperty(roomname))
+                continue;
+            if (roomname == '')
+                continue;
+            roomname = roomname.replace(/^\//, '');
+            re = false;
+            if (o.user) {
+                re = {
+                    roomname: roomname,
+                    users: this.get_room_users(roomname)
+                };
+            }
+            else {
+                if (o.room == false)
+                    re = roomname;
+                else if (o.room == roomname)
+                    re = roomname;
+            }
+            if (re)
+                roomList.push(re);
+        }
+        return roomList;
+    };
+    VideoCenterServer.prototype.get_room_users = function (roomname) {
+        if (this.is_room_exist(roomname)) {
+            var room = this.get_room(roomname);
+            if (room) {
+                var users = [];
+                for (var socket_id in room) {
+                    if (!room.hasOwnProperty(socket_id))
+                        continue;
+                    var socket = room[socket_id];
+                    users.push(this.getUser(socket));
+                }
+                return users;
+            }
+        }
+        return 0;
+    };
+    VideoCenterServer.prototype.is_room_exist = function (roomname) {
+        var re = this.get_room_list({ room: roomname });
+        return re.length;
+    };
+    VideoCenterServer.prototype.get_room = function (roomname) {
+        var rooms = this.io.sockets.manager.rooms;
+        return rooms[roomname];
     };
     return VideoCenterServer;
 }());
