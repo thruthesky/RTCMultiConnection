@@ -171,14 +171,11 @@ class VideoCenterServer {
         callback( roomname );
     }
 
-    private userList( socket: any, roomname: string,  callback: any ) {
-        // callback( JSON.stringify( this.users ) );
-        // callback(  this.users  );
-
-        
+    private userList( socket: any, roomname: string,  callback: any ) {                      
         if ( roomname ) {
             /**
              * @attention I can use 'this.user' but i did it for experimental.
+             * 
              */
             let users = this.get_room_users( this.io, roomname );
             callback( users );
