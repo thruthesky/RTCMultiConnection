@@ -32,8 +32,8 @@ var VideoCenterServer = (function () {
         socket.on('log-out', function (callback) {
             _this.logout(io, socket, callback);
         });
-        socket.on('user-list', function (callback) {
-            _this.userList(socket, callback);
+        socket.on('user-list', function (roomname, callback) {
+            _this.userList(socket, roomname, callback);
         });
         socket.on('room-list', function (callback) {
             _this.roomList(io, socket, callback);
@@ -132,8 +132,14 @@ var VideoCenterServer = (function () {
         socket.join(roomname);
         callback(roomname);
     };
-    VideoCenterServer.prototype.userList = function (socket, callback) {
-        callback(this.users);
+    VideoCenterServer.prototype.userList = function (socket, roomname, callback) {
+        if (roomname) {
+            var users = this.get_room_users(this.io, roomname);
+            callback(users);
+        }
+        else {
+            callback(this.users);
+        }
     };
     VideoCenterServer.prototype.roomList = function (io, socket, callback) {
         callback(this.get_room_list(io));
@@ -180,8 +186,8 @@ var VideoCenterServer = (function () {
                 for (var socket_id in room) {
                     if (!room.hasOwnProperty(socket_id))
                         continue;
-                    var socket = room[socket_id];
-                    users.push(this.getUser(socket));
+                    var id = room[socket_id];
+                    users.push(this.getUser({ id: id }));
                 }
                 return users;
             }
@@ -194,6 +200,7 @@ var VideoCenterServer = (function () {
     };
     VideoCenterServer.prototype.get_room = function (io, roomname) {
         var rooms = io.sockets.manager.rooms;
+        roomname = '/' + roomname;
         return rooms[roomname];
     };
     return VideoCenterServer;

@@ -48,8 +48,8 @@ class VideoCenterServer {
         socket.on('log-out', ( callback: any ) => {
             this.logout( io, socket, callback );
         } );
-        socket.on('user-list', ( callback: any ) => {    
-             this.userList( socket,callback );
+        socket.on('user-list', ( roomname: string, callback: any ) => {    
+             this.userList( socket, roomname, callback );
         } );
         socket.on('room-list', ( callback: any ) => {    
              this.roomList( io, socket, callback );
@@ -99,6 +99,7 @@ class VideoCenterServer {
         return this.users[ user.socket ];
     }
     
+    //
     private getUser ( socket: any ) : User {
         return this.users[ socket.id ]
     }
@@ -116,6 +117,13 @@ class VideoCenterServer {
         callback( username );        
         io.sockets.emit('update-username', user_info )
     }
+
+    /**
+     * 
+     * @attention This does not create a room. There is no such thing like creating a room in socket.io
+     * @note but we do here to check every thing is okay to create a room.
+     *      for instance, if a room is already created with the same roomname, we will send a failure message to user.
+     */
     private createRoom ( io:any, socket: any, roomname: string, callback: any ) : void {
         let user = this.getUser( socket );  
         socket.leave( user.room );
@@ -163,9 +171,22 @@ class VideoCenterServer {
         callback( roomname );
     }
 
-    private userList( socket: any, callback: any ) {
+    private userList( socket: any, roomname: string,  callback: any ) {
         // callback( JSON.stringify( this.users ) );
-        callback(  this.users  );
+        // callback(  this.users  );
+
+        
+        if ( roomname ) {
+            /**
+             * @attention I can use 'this.user' but i did it for experimental.
+             */
+            let users = this.get_room_users( this.io, roomname );
+            callback( users );
+        }
+        else {
+            callback ( this.users );
+        }
+        
     }
     private roomList( io:any, socket: any, callback: any ) {        
         callback(  this.get_room_list(io)  );
@@ -223,8 +244,8 @@ class VideoCenterServer {
                 var users = [];
                 for ( var socket_id in room ) {
                     if ( ! room.hasOwnProperty( socket_id ) ) continue;
-                    var socket = room[ socket_id ]; 
-                    users.push( this.getUser( socket ) );
+                    var id = room[ socket_id ]; 
+                    users.push( this.getUser( { id: id } ) );
                 }
                 return users;
             }
@@ -237,6 +258,7 @@ class VideoCenterServer {
     }
     private get_room( io:any, roomname:any) {
         let rooms:any = io.sockets.manager.rooms;
+        roomname = '/' + roomname;
         return rooms[roomname];
     }
 
