@@ -16,7 +16,7 @@ const lobbyRoomName = 'Lobby';
 
 class VideoCenterServer {
     private io: any;
-    public users = {} as User;
+    public users: User = <User>{};
     constructor() {
         console.log("VideoCenterServer::constructor() ...");
     }
@@ -52,7 +52,7 @@ class VideoCenterServer {
             this.logout( io, socket, callback );
         } );
         socket.on('user-list', ( callback: any ) => {    
-             this.userList( socket, callback );
+             this.userList( socket,callback );
         } );
         socket.on('room-list', ( callback: any ) => {    
              this.roomList( io, socket, callback );
@@ -123,7 +123,6 @@ class VideoCenterServer {
         let user = this.getUser( socket );  
         socket.leave( user.room );
         console.log(user.name + "left :" + user.room );
-        user.room = roomname;
         this.setUser( user );
         console.log( user.name + ' created and joined :' + user.room );
         callback( user.room );
@@ -145,7 +144,7 @@ class VideoCenterServer {
         }
         else {
             this.io.sockets.emit('remove-room', user.room );
-            callback();   
+            callback();
         }            
            
     }
@@ -159,13 +158,19 @@ class VideoCenterServer {
         delete this.users[ id ]
     } 
 
-    private joinLobby ( socket: any,  callback: any ) : void {   
-        var user = this.getUser( socket );  
-        user.room = lobbyRoomName;
-        this.setUser( user );         
-        socket.join( lobbyRoomName ); 
-        callback();
+    private joinLobby ( socket: any,  callback: any ) : void {
+
+        this.joinRoom( socket, lobbyRoomName, callback );
+
+        // var user = this.getUser( socket );
+        // user.room = lobbyRoomName;
+        // this.setUser( user );         
+        // socket.join( lobbyRoomName ); 
+        // callback();
     }
+
+
+
      private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
         var user = this.getUser( socket );  
         user.room = roomname;
@@ -181,6 +186,20 @@ class VideoCenterServer {
     private roomList( io:any, socket: any, callback: any ) {        
         callback(  this.get_room_list(io)  );
     }
+    /**
+     * @warning there is a bug in this method.
+     * 
+     *  when room='Lobby' and user=true,
+     *  it should return room 'Lobby' information together with Users of 'Lobby' room.
+     * 
+     *  But it returns all the room with the users of the room.
+     * 
+     *      - if room='Talk' and users=false, then returns 'Talk' as string.
+     *      - if room=undefined and users=true, then returns all the room with its users.
+     *      - if room='Talk' and users=true,  then returns all the room with its users.
+     * 
+     * @note if you want to get users of a room, use get_room_users()
+     */
     private get_room_list(io:any, opts?:any) {
         var defaults = {
             room: false,
@@ -236,6 +255,7 @@ class VideoCenterServer {
         let rooms:any = io.sockets.manager.rooms;
         return rooms[roomname];
     }
+
  
 }
 exports = module.exports = VideoCenterServer;

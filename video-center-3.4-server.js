@@ -98,7 +98,6 @@ var VideoCenterServer = (function () {
         var user = this.getUser(socket);
         socket.leave(user.room);
         console.log(user.name + "left :" + user.room);
-        user.room = roomname;
         this.setUser(user);
         console.log(user.name + ' created and joined :' + user.room);
         callback(user.room);
@@ -130,11 +129,7 @@ var VideoCenterServer = (function () {
         delete this.users[id];
     };
     VideoCenterServer.prototype.joinLobby = function (socket, callback) {
-        var user = this.getUser(socket);
-        user.room = lobbyRoomName;
-        this.setUser(user);
-        socket.join(lobbyRoomName);
-        callback();
+        this.joinRoom(socket, lobbyRoomName, callback);
     };
     VideoCenterServer.prototype.joinRoom = function (socket, roomname, callback) {
         var user = this.getUser(socket);
