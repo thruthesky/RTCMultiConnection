@@ -29,10 +29,7 @@ class VideoCenterServer {
         // socket.on('ping', this.pong );        
         socket.on('disconnect', () => {
             this.disconnect( io, socket );
-        } );      
-        socket.on('join-lobby', ( callback:any ) => {
-            this.joinLobby( socket, callback );            
-        } );
+        } );         
         socket.on('join-room', ( roomname:string, callback:any ) => {
             this.joinRoom( socket, roomname, callback );            
         } );
@@ -125,7 +122,7 @@ class VideoCenterServer {
         console.log(user.name + "left :" + user.room );
         this.setUser( user );
         console.log( user.name + ' created and joined :' + user.room );
-        callback( user.room );
+        callback( roomname );
         io.sockets.emit('create-room', user );      
     }
     private leaveRoom ( io:any, socket: any, callback: any ) : void {
@@ -157,19 +154,6 @@ class VideoCenterServer {
     private removeUser ( id: string ) : void {
         delete this.users[ id ]
     } 
-
-    private joinLobby ( socket: any,  callback: any ) : void {
-
-        this.joinRoom( socket, lobbyRoomName, callback );
-
-        // var user = this.getUser( socket );
-        // user.room = lobbyRoomName;
-        // this.setUser( user );         
-        // socket.join( lobbyRoomName ); 
-        // callback();
-    }
-
-
 
      private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
         var user = this.getUser( socket );  
