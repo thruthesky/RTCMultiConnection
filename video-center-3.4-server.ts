@@ -131,7 +131,7 @@ class VideoCenterServer {
         this.setUser( user );
         console.log( user.name + ' created and joined :' + user.room );
         callback( roomname );
-        io.sockets.emit('create-room', user );      
+        // io.sockets.emit('create-room', user );      
     }
     private leaveRoom ( io:any, socket: any, callback: any ) : void {
         var user = this.getUser( socket );        
@@ -169,6 +169,7 @@ class VideoCenterServer {
         this.setUser( user );         
         socket.join( roomname ); 
         callback( roomname );
+        this.io.sockets.emit('join-room', user );      
     }
 
     private userList( socket: any, roomname: string,  callback: any ) {                      

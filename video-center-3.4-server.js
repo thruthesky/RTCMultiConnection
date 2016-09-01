@@ -98,7 +98,6 @@ var VideoCenterServer = (function () {
         this.setUser(user);
         console.log(user.name + ' created and joined :' + user.room);
         callback(roomname);
-        io.sockets.emit('create-room', user);
     };
     VideoCenterServer.prototype.leaveRoom = function (io, socket, callback) {
         var user = this.getUser(socket);
@@ -131,6 +130,7 @@ var VideoCenterServer = (function () {
         this.setUser(user);
         socket.join(roomname);
         callback(roomname);
+        this.io.sockets.emit('join-room', user);
     };
     VideoCenterServer.prototype.userList = function (socket, roomname, callback) {
         if (roomname) {
