@@ -126,11 +126,9 @@ class VideoCenterServer {
     private createRoom ( io:any, socket: any, roomname: string, callback: any ) : void {
         let user = this.getUser( socket );  
         socket.leave( user.room );
-        console.log(user.name + "left :" + user.room );
-        this.setUser( user );
-        console.log( user.name + ' created and joined :' + user.room );
-        callback( roomname );
-        // io.sockets.emit('create-room', user );      
+        console.log(user.name + "left :" + user.room );    
+        console.log( user.name + ' created and joined :' + roomname  );
+        callback( roomname );           
     }
     private leaveRoom ( io:any, socket: any, callback: any ) : void {
         var user = this.getUser( socket );        
@@ -154,7 +152,7 @@ class VideoCenterServer {
     }
     private chatMessage ( io:any, socket: any, message: string, callback: any ) : void {
         let user = this.getUser( socket );        
-        io.sockets["in"]( user.room ).emit('chat-message', { message: message, name: user.name, room: user.room } );
+        io.sockets["in"]( user.room ).emit('chat-message', { message: message, name: user.name+":", room: user.room } );
         callback( user );
     }
     
@@ -168,7 +166,9 @@ class VideoCenterServer {
         this.setUser( user );         
         socket.join( roomname ); 
         callback( roomname );
-        this.io.sockets.emit('join-room', user );      
+        this.io.sockets.emit('join-room', user );    
+        let message : string = user.name + " join the " + roomname + " room.";
+        this.io.sockets["in"]( roomname ).emit('chat-message', { message: message, name: "", room: roomname } );  
     }
 
     private userList( socket: any, roomname: string,  callback: any ) {                      

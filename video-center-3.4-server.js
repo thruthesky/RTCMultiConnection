@@ -95,8 +95,7 @@ var VideoCenterServer = (function () {
         var user = this.getUser(socket);
         socket.leave(user.room);
         console.log(user.name + "left :" + user.room);
-        this.setUser(user);
-        console.log(user.name + ' created and joined :' + user.room);
+        console.log(user.name + ' created and joined :' + roomname);
         callback(roomname);
     };
     VideoCenterServer.prototype.leaveRoom = function (io, socket, callback) {
@@ -118,7 +117,7 @@ var VideoCenterServer = (function () {
     };
     VideoCenterServer.prototype.chatMessage = function (io, socket, message, callback) {
         var user = this.getUser(socket);
-        io.sockets["in"](user.room).emit('chat-message', { message: message, name: user.name, room: user.room });
+        io.sockets["in"](user.room).emit('chat-message', { message: message, name: user.name + ":", room: user.room });
         callback(user);
     };
     VideoCenterServer.prototype.removeUser = function (id) {
@@ -131,6 +130,8 @@ var VideoCenterServer = (function () {
         socket.join(roomname);
         callback(roomname);
         this.io.sockets.emit('join-room', user);
+        var message = user.name + " join the " + roomname + " room.";
+        this.io.sockets["in"](roomname).emit('chat-message', { message: message, name: "", room: roomname });
     };
     VideoCenterServer.prototype.userList = function (socket, roomname, callback) {
         if (roomname) {
