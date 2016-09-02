@@ -1,6 +1,7 @@
 "use strict";
 var extend = require('extend');
 var lobbyRoomName = 'Lobby';
+var EmptyRoomname = '';
 var VideoCenterServer = (function () {
     function VideoCenterServer() {
         this.users = {};
@@ -38,6 +39,9 @@ var VideoCenterServer = (function () {
         socket.on('room-list', function (callback) {
             _this.roomList(io, socket, callback);
         });
+        socket.on('broadcast-leave', function (roomname, callback) {
+            _this.broadcastLeave(socket, roomname, callback);
+        });
     };
     VideoCenterServer.prototype.pong = function (callback) {
         console.log("I got ping. pong it.");
@@ -53,12 +57,14 @@ var VideoCenterServer = (function () {
         }
         this.removeUser(socket.id);
         console.log("Someone Disconnected.");
-        io.sockets.emit('disconnect', user);
+        io.sockets.emit('disconnect', user, user.room);
     };
     VideoCenterServer.prototype.logout = function (io, socket, callback) {
         var user = this.getUser(socket);
         socket.leave(user.room);
         io.sockets.emit('log-out', user);
+        user.room = EmptyRoomname;
+        this.setUser(user);
         this.removeUser(socket);
         console.log(user.name + ' has logged out.');
         callback();
@@ -66,7 +72,7 @@ var VideoCenterServer = (function () {
     VideoCenterServer.prototype.addUser = function (socket) {
         var user = {};
         user.name = 'Anonymous';
-        user.room = lobbyRoomName;
+        user.room = EmptyRoomname;
         user.socket = socket.id;
         this.users[socket.id] = user;
         return this.users[socket.id];
@@ -119,6 +125,11 @@ var VideoCenterServer = (function () {
         var user = this.getUser(socket);
         io.sockets["in"](user.room).emit('chat-message', { message: message, name: user.name + ":", room: user.room });
         callback(user);
+    };
+    VideoCenterServer.prototype.broadcastLeave = function (socket, roomname, callback) {
+        var user = this.getUser(socket);
+        var message = user.name + " left the " + roomname + " room.";
+        this.io.sockets["in"](roomname).emit('chat-message', { message: message, name: "", room: roomname });
     };
     VideoCenterServer.prototype.removeUser = function (id) {
         delete this.users[id];

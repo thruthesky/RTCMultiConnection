@@ -12,6 +12,7 @@ interface User {
 
 
 const lobbyRoomName = 'Lobby';
+const EmptyRoomname = '';
 
 
 class VideoCenterServer {
@@ -54,6 +55,9 @@ class VideoCenterServer {
         socket.on('room-list', ( callback: any ) => {    
              this.roomList( io, socket, callback );
         } );
+        socket.on('broadcast-leave', ( roomname: string, callback: any ) => {    
+             this.broadcastLeave( socket, roomname, callback );
+        } );
         
     }
     
@@ -72,7 +76,7 @@ class VideoCenterServer {
             }               
         this.removeUser( socket.id );
         console.log("Someone Disconnected.");   
-        io.sockets.emit('disconnect', user );   
+        io.sockets.emit('disconnect', user, user.room );   
         // let message : string = user.name + " left the " + user.room + " room.";
         // this.io.sockets["in"]( user.room ).emit('chat-message', { message: message, name: "", room: user.room } );  
     }
@@ -81,6 +85,8 @@ class VideoCenterServer {
         var user = this.getUser( socket );        
         socket.leave( user.room ); 
         io.sockets.emit('log-out', user );
+        user.room = EmptyRoomname;
+        this.setUser(user);
         this.removeUser( socket );
         console.log(user.name + ' has logged out.' );              
         callback();
@@ -89,7 +95,7 @@ class VideoCenterServer {
     private addUser ( socket: any ) : User {
         let user: User = <User>{};
         user.name = 'Anonymous';
-        user.room = lobbyRoomName;
+        user.room = EmptyRoomname;
         user.socket = socket.id;
         this.users[ socket.id ] = user;         
         return this.users[ socket.id ];
@@ -157,12 +163,16 @@ class VideoCenterServer {
         io.sockets["in"]( user.room ).emit('chat-message', { message: message, name: user.name+":", room: user.room } );
         callback( user );
     }
-    
+    private broadcastLeave ( socket: any, roomname : string , callback: any ) : void {   
+        var user = this.getUser( socket );  
+        let message : string = user.name + " left the " + roomname+ " room.";
+        this.io.sockets["in"]( roomname ).emit('chat-message', { message: message, name: "", room: roomname } );  
+    }
     private removeUser ( id: string ) : void {
         delete this.users[ id ]
     } 
 
-     private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
+    private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
         var user = this.getUser( socket );  
         user.room = roomname;
         this.setUser( user );         
