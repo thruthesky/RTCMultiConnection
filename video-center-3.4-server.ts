@@ -76,9 +76,7 @@ class VideoCenterServer {
             }               
         this.removeUser( socket.id );
         console.log("Someone Disconnected.");   
-        io.sockets.emit('disconnect', user, user.room );   
-        // let message : string = user.name + " left the " + user.room + " room.";
-        // this.io.sockets["in"]( user.room ).emit('chat-message', { message: message, name: "", room: user.room } );  
+        io.sockets.emit('disconnect', user, user.room );     
     }
 
     private logout ( io:any, socket: any, callback: any ) : void {
