@@ -53,12 +53,12 @@ var VideoCenterServer = (function () {
         }
         this.removeUser(socket.id);
         console.log("Someone Disconnected.");
-        io.sockets.emit('disconnect', socket.id);
+        io.sockets.emit('disconnect', user);
     };
     VideoCenterServer.prototype.logout = function (io, socket, callback) {
         var user = this.getUser(socket);
         socket.leave(user.room);
-        io.sockets.emit('log-out', user.socket);
+        io.sockets.emit('log-out', user);
         this.removeUser(socket);
         console.log(user.name + ' has logged out.');
         callback();
