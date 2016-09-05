@@ -134,9 +134,7 @@ class VideoCenterServer {
      *      for instance, if a room is already created with the same roomname, we will send a failure message to user.
      */
     private createRoom ( io:any, socket: any, roomname: string, callback: any ) : void {
-        let user = this.getUser( socket );  
-        socket.leave( user.room );
-        console.log(user.name + "left :" + user.room );    
+        let user = this.getUser( socket );    
         console.log( user.name + ' created and joined :' + roomname  );
         callback( roomname );           
     }
@@ -155,34 +153,42 @@ class VideoCenterServer {
             callback();   
         }
         else {
-            this.io.sockets.emit('remove-room', user.room );
+            this.io.sockets.emit('leave-room', user.room );
             callback();
         }            
            
     }
     private chatMessage ( io:any, socket: any, message: string, callback: any ) : void {
         let user = this.getUser( socket );        
-        io.sockets["in"]( user.room ).emit('chat-message', { message: message, name: user.name+":", room: user.room } );
+        io.sockets["in"]( user.room ).emit('chatMessage', { message: message, name: user.name+":", room: user.room } );
         callback( user );
     }
     private broadcastLeave ( socket: any, roomname : string , callback: any ) : void {   
         var user = this.getUser( socket );  
         let message : string = user.name + " left the " + roomname+ " room.";
-        this.io.sockets["in"]( roomname ).emit('chat-message', { message: message, name: "", room: roomname } );  
+        this.io.sockets["in"]( roomname ).emit('broadcast-leave', { message: message, name: "", room: roomname } );  
     }
     private removeUser ( id: string ) : void {
         delete this.users[ id ]
     } 
 
     private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
-        var user = this.getUser( socket );  
-        user.room = roomname;
-        this.setUser( user );         
+        var user = this.getUser( socket );
+
+        socket.leave( user.room ); // old room
+        console.log( user.name + "left :" + user.room );
+
+
+        user.room = roomname;       // new room
+        this.setUser( user );       // update new room on user
         socket.join( roomname ); 
+
         callback( roomname );
-        this.io.sockets.emit('join-room', user );    
-        let message : string = user.name + " join the " + roomname + " room.";
-        this.io.sockets["in"]( roomname ).emit('chat-message', { message: message, name: "", room: roomname } );  
+
+//        this.io.sockets.emit('join-room', user );    
+//        let message : string = user.name + " join the " + roomname + " room.";
+        this.io.sockets["in"]( roomname ).emit('join-room', user);
+        this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user);
     }
 
     private userList( socket: any, roomname: string,  callback: any ) {                      
