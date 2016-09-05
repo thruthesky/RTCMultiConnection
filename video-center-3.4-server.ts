@@ -119,12 +119,13 @@ class VideoCenterServer {
     }
 
     private updateUsername ( io:any, socket: any, username: string, callback: any ) : void {
-        let user_info = this.getUser( socket );  
-        let oldusername = user_info.name;
-        let user = this.setUsername( socket, username );            
-        console.log(oldusername + " change it's name to "+username);    
-        callback( username );        
-        io.sockets.emit('update-username', user_info )
+        let user = this.getUser( socket );  
+        let oldusername = user.name;
+        user = this.setUsername( socket, username );            
+        console.log(oldusername + " change it's name to "+username);
+        console.log( user );
+        callback( user );
+        io.sockets.emit('update-username', user )
     }
 
     /**
@@ -174,8 +175,8 @@ class VideoCenterServer {
 
     private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
         var user = this.getUser( socket );
-
-        socket.leave( user.room ); // old room
+        let oldRoom = user.room;
+        socket.leave( oldRoom ); // old room
         console.log( user.name + "left :" + user.room );
 
 
@@ -184,8 +185,17 @@ class VideoCenterServer {
         socket.join( roomname ); 
 
         callback( roomname );
-        this.io.sockets["in"]( roomname ).emit('join-room', user);
-        this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user);
+
+
+        if ( oldRoom == lobbyRoomName ) {
+            this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
+            this.io.sockets["in"]( roomname ).emit('join-room', user); // tell member of new room.
+        }
+        else {
+            this.io.sockets["in"]( oldRoom ).emit('join-room', user); // tell members of prev room.
+            this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
+        }
+        
     }
 
     private userList( socket: any, roomname: string,  callback: any ) {                      

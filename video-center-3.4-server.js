@@ -94,12 +94,13 @@ var VideoCenterServer = (function () {
         return this.setUser(user);
     };
     VideoCenterServer.prototype.updateUsername = function (io, socket, username, callback) {
-        var user_info = this.getUser(socket);
-        var oldusername = user_info.name;
-        var user = this.setUsername(socket, username);
+        var user = this.getUser(socket);
+        var oldusername = user.name;
+        user = this.setUsername(socket, username);
         console.log(oldusername + " change it's name to " + username);
-        callback(username);
-        io.sockets.emit('update-username', user_info);
+        console.log(user);
+        callback(user);
+        io.sockets.emit('update-username', user);
     };
     VideoCenterServer.prototype.createRoom = function (io, socket, roomname, callback) {
         var user = this.getUser(socket);
@@ -137,14 +138,21 @@ var VideoCenterServer = (function () {
     };
     VideoCenterServer.prototype.joinRoom = function (socket, roomname, callback) {
         var user = this.getUser(socket);
-        socket.leave(user.room);
+        var oldRoom = user.room;
+        socket.leave(oldRoom);
         console.log(user.name + "left :" + user.room);
         user.room = roomname;
         this.setUser(user);
         socket.join(roomname);
         callback(roomname);
-        this.io.sockets["in"](roomname).emit('join-room', user);
-        this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
+        if (oldRoom == lobbyRoomName) {
+            this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
+            this.io.sockets["in"](roomname).emit('join-room', user);
+        }
+        else {
+            this.io.sockets["in"](oldRoom).emit('join-room', user);
+            this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
+        }
     };
     VideoCenterServer.prototype.userList = function (socket, roomname, callback) {
         if (roomname) {
