@@ -29,7 +29,11 @@ class VideoCenterServer {
         this.addUser( socket );      
         // socket.on('ping', this.pong );        
         socket.on('disconnect', () => {
-            this.disconnect( io, socket );
+            let user = this.getUser( socket );  
+            this.broadcastLeave( socket, user.room, ()=>{
+                console.log("Disconnected");
+            } );
+            this.disconnect( io, socket );           
         } );         
         socket.on('join-room', ( roomname:string, callback:any ) => {
             this.joinRoom( socket, roomname, callback );            
@@ -75,8 +79,7 @@ class VideoCenterServer {
                 });
             }               
         this.removeUser( socket.id );
-        console.log("Someone Disconnected.");   
-        io.sockets.emit('disconnect', user, user.room );     
+        console.log("Someone Disconnected.");          
     }
 
     private logout ( io:any, socket: any, callback: any ) : void {

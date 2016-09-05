@@ -13,6 +13,10 @@ var VideoCenterServer = (function () {
         this.io = io;
         this.addUser(socket);
         socket.on('disconnect', function () {
+            var user = _this.getUser(socket);
+            _this.broadcastLeave(socket, user.room, function () {
+                console.log("Disconnected");
+            });
             _this.disconnect(io, socket);
         });
         socket.on('join-room', function (roomname, callback) {
@@ -57,7 +61,6 @@ var VideoCenterServer = (function () {
         }
         this.removeUser(socket.id);
         console.log("Someone Disconnected.");
-        io.sockets.emit('disconnect', user, user.room);
     };
     VideoCenterServer.prototype.logout = function (io, socket, callback) {
         var user = this.getUser(socket);
