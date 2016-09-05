@@ -61,6 +61,7 @@ var VideoCenterServer = (function () {
         }
         this.removeUser(socket.id);
         console.log("Someone Disconnected.");
+        io.sockets.emit('disconnect', user);
     };
     VideoCenterServer.prototype.logout = function (io, socket, callback) {
         var user = this.getUser(socket);

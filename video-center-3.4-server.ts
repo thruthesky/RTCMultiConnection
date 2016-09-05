@@ -79,7 +79,8 @@ class VideoCenterServer {
                 });
             }               
         this.removeUser( socket.id );
-        console.log("Someone Disconnected.");          
+        console.log("Someone Disconnected.");     
+        io.sockets.emit('disconnect', user);       
     }
 
     private logout ( io:any, socket: any, callback: any ) : void {
