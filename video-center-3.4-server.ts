@@ -188,8 +188,8 @@ class VideoCenterServer {
 
 
         if ( oldRoom == lobbyRoomName ) {
-            this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
-            this.io.sockets["in"]( roomname ).emit('join-room', user); // tell member of new room.
+            if( roomname != lobbyRoomName )this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
+            this.io.sockets["in"]( roomname ).emit('join-room', user); // tell member of new room
         }
         else {
             this.io.sockets["in"]( oldRoom ).emit('join-room', user); // tell members of prev room.

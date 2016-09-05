@@ -146,7 +146,8 @@ var VideoCenterServer = (function () {
         socket.join(roomname);
         callback(roomname);
         if (oldRoom == lobbyRoomName) {
-            this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
+            if (roomname != lobbyRoomName)
+                this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
             this.io.sockets["in"](roomname).emit('join-room', user);
         }
         else {
