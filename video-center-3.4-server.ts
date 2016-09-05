@@ -166,7 +166,7 @@ class VideoCenterServer {
     private broadcastLeave ( socket: any, roomname : string , callback: any ) : void {   
         var user = this.getUser( socket );  
         let message : string = user.name + " left the " + roomname+ " room.";
-        this.io.sockets["in"]( roomname ).emit('broadcast-leave', { message: message, name: "", room: roomname } );  
+        // this.io.sockets["in"]( roomname ).emit('broadcast-leave', { message: message, name: "", room: roomname } );  
     }
     private removeUser ( id: string ) : void {
         delete this.users[ id ]
@@ -184,9 +184,6 @@ class VideoCenterServer {
         socket.join( roomname ); 
 
         callback( roomname );
-
-//        this.io.sockets.emit('join-room', user );    
-//        let message : string = user.name + " join the " + roomname + " room.";
         this.io.sockets["in"]( roomname ).emit('join-room', user);
         this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user);
     }

@@ -131,7 +131,6 @@ var VideoCenterServer = (function () {
     VideoCenterServer.prototype.broadcastLeave = function (socket, roomname, callback) {
         var user = this.getUser(socket);
         var message = user.name + " left the " + roomname + " room.";
-        this.io.sockets["in"](roomname).emit('broadcast-leave', { message: message, name: "", room: roomname });
     };
     VideoCenterServer.prototype.removeUser = function (id) {
         delete this.users[id];
