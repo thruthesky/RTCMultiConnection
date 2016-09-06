@@ -13,11 +13,7 @@ var VideoCenterServer = (function () {
         this.io = io;
         this.addUser(socket);
         socket.on('disconnect', function () {
-            var user = _this.getUser(socket);
-            _this.broadcastLeave(socket, user.room, function () {
-                console.log("Disconnected");
-            });
-            _this.disconnect(io, socket);
+            _this.disconnect(socket);
         });
         socket.on('join-room', function (roomname, callback) {
             _this.joinRoom(socket, roomname, callback);
@@ -32,7 +28,7 @@ var VideoCenterServer = (function () {
             _this.chatMessage(io, socket, message, callback);
         });
         socket.on('leave-room', function (callback) {
-            _this.leaveRoom(io, socket, callback);
+            _this.leaveRoom(socket, callback);
         });
         socket.on('log-out', function (callback) {
             _this.logout(io, socket, callback);
@@ -51,17 +47,15 @@ var VideoCenterServer = (function () {
         console.log("I got ping. pong it.");
         callback('pong');
     };
-    VideoCenterServer.prototype.disconnect = function (io, socket) {
+    VideoCenterServer.prototype.disconnect = function (socket) {
         var user = this.getUser(socket);
         socket.leave(user.room);
-        if (user.room != "Lobby") {
-            this.leaveRoom(io, socket, function () {
-                console.log("You left and disconnect");
-            });
-        }
+        this.leaveRoom(socket, function () {
+            console.log("You left and disconnect");
+        });
         this.removeUser(socket.id);
         console.log("Someone Disconnected.");
-        io.sockets.emit('disconnect', user);
+        this.io.sockets["in"](user.room).emit('disconnect', user);
     };
     VideoCenterServer.prototype.logout = function (io, socket, callback) {
         var user = this.getUser(socket);
@@ -107,8 +101,9 @@ var VideoCenterServer = (function () {
         console.log(user.name + ' created and joined :' + roomname);
         callback(roomname);
     };
-    VideoCenterServer.prototype.leaveRoom = function (io, socket, callback) {
+    VideoCenterServer.prototype.leaveRoom = function (socket, callback) {
         var user = this.getUser(socket);
+        var io = this.io;
         socket.leave(user.room);
         console.log(user.name + ' leave the room: ' + user.room);
         if (this.is_room_exist(io, user.room)) {
@@ -136,23 +131,28 @@ var VideoCenterServer = (function () {
     VideoCenterServer.prototype.removeUser = function (id) {
         delete this.users[id];
     };
-    VideoCenterServer.prototype.joinRoom = function (socket, roomname, callback) {
+    VideoCenterServer.prototype.joinRoom = function (socket, newRoomname, callback) {
         var user = this.getUser(socket);
         var oldRoom = user.room;
-        socket.leave(oldRoom);
-        console.log(user.name + "left :" + user.room);
-        user.room = roomname;
+        if (oldRoom) {
+            socket.leave(oldRoom);
+            console.log(user.name + "left :" + user.room);
+        }
+        user.room = newRoomname;
         this.setUser(user);
-        socket.join(roomname);
-        callback(roomname);
+        socket.join(newRoomname);
+        callback(newRoomname);
         if (oldRoom == lobbyRoomName) {
-            if (roomname != lobbyRoomName)
-                this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
-            this.io.sockets["in"](roomname).emit('join-room', user);
+            if (newRoomname != lobbyRoomName) {
+                this.io.sockets["in"](newRoomname).emit('join-room', user);
+            }
+            this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
         }
         else {
-            this.io.sockets["in"](oldRoom).emit('join-room', user);
-            this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
+            if (oldRoom) {
+                this.io.sockets["in"](oldRoom).emit('join-room', user);
+            }
+            this.io.sockets["in"](newRoomname).emit('join-room', user);
         }
     };
     VideoCenterServer.prototype.userList = function (socket, roomname, callback) {

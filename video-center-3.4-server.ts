@@ -29,11 +29,11 @@ class VideoCenterServer {
         this.addUser( socket );      
         // socket.on('ping', this.pong );        
         socket.on('disconnect', () => {
-            let user = this.getUser( socket );  
-            this.broadcastLeave( socket, user.room, ()=>{
-                console.log("Disconnected");
-            } );
-            this.disconnect( io, socket );           
+            // let user = this.getUser( socket );  
+            // this.broadcastLeave( socket, user.room, ()=>{
+            //     console.log("Disconnected");
+            // } );
+            this.disconnect( socket );           
         } );         
         socket.on('join-room', ( roomname:string, callback:any ) => {
             this.joinRoom( socket, roomname, callback );            
@@ -48,7 +48,7 @@ class VideoCenterServer {
             this.chatMessage( io, socket, message, callback );            
         } );
         socket.on('leave-room', ( callback: any ) => {
-            this.leaveRoom( io, socket, callback );
+            this.leaveRoom( socket, callback );
         } ); 
         socket.on('log-out', ( callback: any ) => {
             this.logout( io, socket, callback );
@@ -70,17 +70,17 @@ class VideoCenterServer {
         callback('pong');
     }
 
-    private disconnect ( io:any, socket:any ) : void { 
+    private disconnect ( socket:any ) : void { 
         var user = this.getUser( socket );  
         socket.leave( user.room );
-            if(user.room!="Lobby"){              
-                this.leaveRoom(io, socket, ()=>{
-                    console.log("You left and disconnect");
-                });
-            }               
+        // if ( user.room != lobbyRoomName ) {
+            this.leaveRoom( socket, ()=>{
+                console.log("You left and disconnect");
+            });
+        //}
         this.removeUser( socket.id );
         console.log("Someone Disconnected.");     
-        io.sockets.emit('disconnect', user);       
+        this.io.sockets["in"]( user.room ).emit('disconnect', user);       
     }
 
     private logout ( io:any, socket: any, callback: any ) : void {
@@ -139,8 +139,9 @@ class VideoCenterServer {
         console.log( user.name + ' created and joined :' + roomname  );
         callback( roomname );           
     }
-    private leaveRoom ( io:any, socket: any, callback: any ) : void {
-        var user = this.getUser( socket );        
+    private leaveRoom ( socket: any, callback: any ) : void {
+        var user = this.getUser( socket );
+        var io = this.io;        
         socket.leave( user.room );           
         console.log(user.name + ' leave the room: '+ user.room );     
         if ( this.is_room_exist( io, user.room ) ) {
@@ -171,31 +172,35 @@ class VideoCenterServer {
     }
     private removeUser ( id: string ) : void {
         delete this.users[ id ]
-    } 
+    }
 
-    private joinRoom ( socket: any, roomname : string , callback: any ) : void {   
+    private joinRoom ( socket: any, newRoomname : string , callback: any ) : void {   
         var user = this.getUser( socket );
         let oldRoom = user.room;
-        socket.leave( oldRoom ); // old room
-        console.log( user.name + "left :" + user.room );
+        if ( oldRoom ) {
+            socket.leave( oldRoom ); // old room
+            console.log( user.name + "left :" + user.room );
+        }
 
 
-        user.room = roomname;       // new room
+        user.room = newRoomname;       // new room
         this.setUser( user );       // update new room on user
-        socket.join( roomname ); 
+        socket.join( newRoomname ); 
 
-        callback( roomname );
-
+        callback( newRoomname );
 
         if ( oldRoom == lobbyRoomName ) {
-            if( roomname != lobbyRoomName )this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
-            this.io.sockets["in"]( roomname ).emit('join-room', user); // tell member of new room
-        }
-        else {
-            this.io.sockets["in"]( oldRoom ).emit('join-room', user); // tell members of prev room.
+            if ( newRoomname != lobbyRoomName ) { // # Case No. 2 and Case No. 3
+                this.io.sockets["in"]( newRoomname ).emit('join-room', user); // tell member of new room
+            }
             this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
         }
-        
+        else {
+            if ( oldRoom ) { // this old room can be 'lobby' or 'other room'.
+                this.io.sockets["in"]( oldRoom ).emit('join-room', user); // tell members of prev room( 'lobby' or 'other room' ) that he is leaving
+            }
+            this.io.sockets["in"]( newRoomname ).emit('join-room', user); // tell member of new room. it can be 'lobby' or other room.
+        }
     }
 
     private userList( socket: any, roomname: string,  callback: any ) {                      
