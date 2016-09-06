@@ -22,6 +22,5 @@ rmc-debug.log
 
 .vscode
 
-vide-center-*.js
-vide-center-*.js.map
-
+video-center-*.js
+video-center-*.js.map
