@@ -12,7 +12,7 @@ interface User {
 
 
 const lobbyRoomName = 'Lobby';
-const EmptyRoomname = '';
+const EmptyRoomname = 'Entrance';
 
 
 class VideoCenterServer {
@@ -177,18 +177,17 @@ class VideoCenterServer {
     private joinRoom ( socket: any, newRoomname : string , callback: any ) : void {   
         var user = this.getUser( socket );
         let oldRoom = user.room;
+
         if ( oldRoom ) {
             socket.leave( oldRoom ); // old room
             console.log( user.name + "left :" + user.room );
         }
-
-
         user.room = newRoomname;       // new room
+
         this.setUser( user );       // update new room on user
-        socket.join( newRoomname ); 
+        socket.join( newRoomname );
 
         callback( newRoomname );
-
         if ( oldRoom == lobbyRoomName ) {
             if ( newRoomname != lobbyRoomName ) { // # Case No. 2 and Case No. 3
                 this.io.sockets["in"]( newRoomname ).emit('join-room', user); // tell member of new room
