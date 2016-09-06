@@ -59,9 +59,11 @@ class VideoCenterServer {
         socket.on('room-list', ( callback: any ) => {    
              this.roomList( io, socket, callback );
         } );
-        socket.on('broadcast-leave', ( roomname: string, callback: any ) => {    
-             this.broadcastLeave( socket, roomname, callback );
-        } );
+
+        // socket.on('broadcast-leave', ( roomname: string, callback: any ) => {    
+        //      this.broadcastLeave( socket, roomname, callback );
+        // } );
+
         
     }
     
@@ -165,11 +167,13 @@ class VideoCenterServer {
         io.sockets["in"]( user.room ).emit('chatMessage', { message: message, name: user.name+":", room: user.room } );
         callback( user );
     }
-    private broadcastLeave ( socket: any, roomname : string , callback: any ) : void {   
-        var user = this.getUser( socket );  
-        let message : string = user.name + " left the " + roomname+ " room.";
-        // this.io.sockets["in"]( roomname ).emit('broadcast-leave', { message: message, name: "", room: roomname } );  
-    }
+
+    // private broadcastLeave ( socket: any, roomname : string , callback: any ) : void {   
+    //     var user = this.getUser( socket );  
+    //     let message : string = user.name + " left the " + roomname+ " room.";
+    //     // this.io.sockets["in"]( roomname ).emit('broadcast-leave', { message: message, name: "", room: roomname } );  
+    // }
+
     private removeUser ( id: string ) : void {
         delete this.users[ id ]
     }
