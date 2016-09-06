@@ -1,7 +1,7 @@
 "use strict";
 var extend = require('extend');
 var lobbyRoomName = 'Lobby';
-var EmptyRoomname = '';
+var EmptyRoomname = 'Entrance';
 var VideoCenterServer = (function () {
     function VideoCenterServer() {
         this.users = {};
@@ -145,14 +145,14 @@ var VideoCenterServer = (function () {
         this.setUser(user);
         socket.join(roomname);
         callback(roomname);
+        this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
         if (oldRoom == lobbyRoomName) {
-            if (roomname != lobbyRoomName)
-                this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
-            this.io.sockets["in"](roomname).emit('join-room', user);
+            this.io.sockets["in"](lobbyRoomName).emit('broadcast-room', user, lobbyRoomName);
+            this.io.sockets["in"](roomname).emit('broadcast-room', user, roomname);
         }
         else {
-            this.io.sockets["in"](oldRoom).emit('join-room', user);
-            this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
+            this.io.sockets["in"](oldRoom).emit('broadcast-room', user, oldRoom);
+            this.io.sockets["in"](roomname).emit('broadcast-room', user, roomname);
         }
     };
     VideoCenterServer.prototype.userList = function (socket, roomname, callback) {

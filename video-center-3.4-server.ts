@@ -12,7 +12,7 @@ interface User {
 
 
 const lobbyRoomName = 'Lobby';
-const EmptyRoomname = '';
+const EmptyRoomname = 'Entrance';
 
 
 class VideoCenterServer {
@@ -178,22 +178,20 @@ class VideoCenterServer {
         let oldRoom = user.room;
         socket.leave( oldRoom ); // old room
         console.log( user.name + "left :" + user.room );
-
-
         user.room = roomname;       // new room
         this.setUser( user );       // update new room on user
         socket.join( roomname ); 
 
         callback( roomname );
 
-
+        this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user);
         if ( oldRoom == lobbyRoomName ) {
-            if( roomname != lobbyRoomName )this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
-            this.io.sockets["in"]( roomname ).emit('join-room', user); // tell member of new room
+            this.io.sockets["in"]( lobbyRoomName ).emit('broadcast-room', user, lobbyRoomName); // tell member of lobby.
+            this.io.sockets["in"]( roomname ).emit('broadcast-room', user, roomname); // tell member of new room
         }
         else {
-            this.io.sockets["in"]( oldRoom ).emit('join-room', user); // tell members of prev room.
-            this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
+            this.io.sockets["in"]( oldRoom ).emit('broadcast-room', user,oldRoom); // tell members of prev room.
+            this.io.sockets["in"]( roomname ).emit('broadcast-room', user,roomname); // tell member of lobby.
         }
         
     }
