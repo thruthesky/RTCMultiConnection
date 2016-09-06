@@ -21,3 +21,7 @@ npm-debug.log
 rmc-debug.log
 
 .vscode
+
+vide-center-*.js
+vide-center-*.js.map
+

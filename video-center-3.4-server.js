@@ -140,7 +140,6 @@ var VideoCenterServer = (function () {
         }
         user.room = newRoomname;
         this.setUser(user);
-<<<<<<< HEAD
         socket.join(newRoomname);
         callback(newRoomname);
         if (oldRoom == lobbyRoomName) {
@@ -154,18 +153,6 @@ var VideoCenterServer = (function () {
                 this.io.sockets["in"](oldRoom).emit('join-room', user);
             }
             this.io.sockets["in"](newRoomname).emit('join-room', user);
-=======
-        socket.join(roomname);
-        callback(roomname);
-        this.io.sockets["in"](lobbyRoomName).emit('join-room', user);
-        if (oldRoom == lobbyRoomName) {
-            this.io.sockets["in"](lobbyRoomName).emit('broadcast-room', user, lobbyRoomName);
-            this.io.sockets["in"](roomname).emit('broadcast-room', user, roomname);
-        }
-        else {
-            this.io.sockets["in"](oldRoom).emit('broadcast-room', user, oldRoom);
-            this.io.sockets["in"](roomname).emit('broadcast-room', user, roomname);
->>>>>>> 21ce619bec290a1e9d786f9eefd78e6db328fe22
         }
     };
     VideoCenterServer.prototype.userList = function (socket, roomname, callback) {
