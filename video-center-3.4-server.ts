@@ -134,7 +134,8 @@ class VideoCenterServer {
     private leaveRoom ( socket: any, callback: any ) : void {
         var user = this.getUser( socket );          
         console.log(user.name + ' leave the room: '+ user.room );     
-        socket.leave( user.room );
+        socket.leave( user.room );    
+        this.io.sockets["in"]( user.room ).emit('remove-user', user);
         if ( this.is_room_exist( user.room ) ) {
             // room exist...
             console.log("room exists. don't broadcast for room delete");
