@@ -196,11 +196,11 @@ class VideoCenterServer {
         this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // all the cases.
 
         if ( move_room ) { // from another. Create, Join but No refresh, no re-connect.
-            if ( move_into_lobby ) { // from room.
-                room = prevRoom; // Case 4.
+            if ( move_into_lobby ) { // from Lobby.
+                room = newRoomname; // Case 4.
             }
             else { // join/create into room from lobby.
-                room = newRoomname; // Case 3. ( Case 2. comes here. and it's okay. )
+                room = prevRoom; // Case 3. ( Case 2. comes here. and it's okay. )
             }
         }
         else if ( visit ) { // Maybe revisit, refresh, reconnect, first visit.
