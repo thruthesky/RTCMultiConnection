@@ -22,17 +22,11 @@ class VideoCenterServer {
         console.log("VideoCenterServer::constructor() ...");
     }
     /*-----Listener---*/
-    listen(socket, io) {
-        // console.log('VideoCenterServer::listen()');
+    listen(socket, io) {        
         console.log('Someone Connected.');
         this.io = io;
-        this.addUser( socket );      
-        // socket.on('ping', this.pong );        
-        socket.on('disconnect', () => {
-            // let user = this.getUser( socket );  
-            // this.broadcastLeave( socket, user.room, ()=>{
-            //     console.log("Disconnected");
-            // } );
+        this.addUser( socket );              
+        socket.on('disconnect', () => {      
             this.disconnect( socket );           
         } );         
         socket.on('join-room', ( roomname:string, callback:any ) => {
@@ -140,8 +134,9 @@ class VideoCenterServer {
     private leaveRoom ( socket: any, callback: any ) : void {
         var user = this.getUser( socket );          
         console.log(user.name + ' leave the room: '+ user.room );     
+        socket.leave( user.room );
         if ( this.is_room_exist( user.room ) ) {
-            // room exist..
+            // room exist...
             console.log("room exists. don't broadcast for room delete");
             callback();
         }
@@ -154,7 +149,7 @@ class VideoCenterServer {
             this.io.sockets.emit('leave-room', user.room );
             callback();
         }
-        socket.leave( user.room );
+        
     }
     private chatMessage ( socket: any, message: string, callback: any ) : void {
         let user = this.getUser( socket );
