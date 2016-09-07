@@ -168,8 +168,7 @@ class VideoCenterServer {
         let oldRoom = user.room;
 
         if ( oldRoom ) {
-            socket.leave( oldRoom ); // old room
-            console.log( user.name + "left :" + user.room );
+            socket.leave( oldRoom ); // old room           
         }
         user.room = newRoomname;       // new room
 
