@@ -12,7 +12,8 @@ interface User {
 
 
 const lobbyRoomName = 'Lobby';
-const EmptyRoomname = 'Entrance';
+const Lobby = 'Lobby';
+const EmptyRoomname = '';
 
 
 class VideoCenterServer {
@@ -67,10 +68,13 @@ class VideoCenterServer {
     }
 
     private disconnect ( socket:any ) : void { 
-        var user = this.getUser( socket );  
+        var user = this.getUser( socket );
+
+        if ( user.room != Lobby ) this.io.sockets["in"]( Lobby ).emit('disconnect', user);
+        this.io.sockets["in"]( user.room ).emit('disconnect', user);
+
         this.leaveRoom( socket, () => console.log("You left and disconnect") );
         this.removeUser( socket.id );
-        this.io.sockets["in"]( user.room ).emit('disconnect', user);
         socket.leave( user.room );
         console.log("Someone Disconnected.");
     }
@@ -166,10 +170,13 @@ class VideoCenterServer {
 
     private joinRoom ( socket: any, newRoomname : string , callback: any ) : void {   
         var user = this.getUser( socket );
-        let oldRoom = user.room;
+        let prevRoom = user.room;
 
-        if ( oldRoom ) {
-            socket.leave( oldRoom ); // old room           
+        /**
+         * @attention who first visits the chat page, even though he has old room, His prev room is empty because whoever creates socket, the default is empty.
+         */
+        if ( prevRoom ) {
+            socket.leave( prevRoom ); // prev room           
         }
         user.room = newRoomname;       // new room
 
@@ -177,18 +184,52 @@ class VideoCenterServer {
         socket.join( newRoomname );
 
         callback( newRoomname );
-        if ( oldRoom == lobbyRoomName ) {
+
+        let move_room = !! prevRoom; // He has prev room name. Meaning he was in room or lobby. He is moving into another room. he is not refreshing the browser.
+        let move_into_lobby = prevRoom == lobbyRoomName; // He was in another room and he joins 'lobby'. He is not refreshing browser, nor re-connected.
+        let visit = ! prevRoom; // He access(visits) the chat page. He is not moving into room from other room. He may refresh browser, disconnected, or whatever.. he access the site again.
+
+        let my_room: string = !! prevRoom || newRoomname == lobbyRoomName ? Lobby : newRoomname;
+        let room: string = '';
+
+        // @todo Case Z.
+        this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // all the cases.
+
+        if ( move_room ) { // from another. Create, Join but No refresh, no re-connect.
+            if ( move_into_lobby ) { // from room.
+                room = prevRoom; // Case 4.
+            }
+            else { // join/create into room from lobby.
+                room = newRoomname; // Case 3. ( Case 2. comes here. and it's okay. )
+            }
+        }
+        else if ( visit ) { // Maybe revisit, refresh, reconnect, first visit.
+            if ( my_room != Lobby ) {
+                room = newRoomname; // Case 1.6
+            }
+        }
+        if ( room ) this.io.sockets["in"]( room ).emit('join-room', user);
+
+
+
+
+/*
+
+        if ( prevRoom == lobbyRoomName ) { // leave lobby. Maybe join room.
             if ( newRoomname != lobbyRoomName ) { // # Case No. 2 and Case No. 3
                 this.io.sockets["in"]( newRoomname ).emit('join-room', user); // tell member of new room
             }
             this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
         }
-        else {
-            if ( oldRoom ) { // this old room can be 'lobby' or 'other room'.
-                this.io.sockets["in"]( oldRoom ).emit('join-room', user); // tell members of prev room( 'lobby' or 'other room' ) that he is leaving
+        else { // His prev room was not lobby. it may be empty.
+            if ( prevRoom ) { // this prev room can be 'empty', 'lobby' or 'other room'.
+                this.io.sockets["in"]( prevRoom ).emit('join-room', user); // tell members of prev room( 'lobby' or 'other room' ) that he is leaving
             }
             this.io.sockets["in"]( newRoomname ).emit('join-room', user); // tell member of new room. it can be 'lobby' or other room.
         }
+
+*/
+
     }
 
     private userList( socket: any, roomname: string,  callback: any ) {                      
