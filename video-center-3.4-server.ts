@@ -55,6 +55,15 @@ class VideoCenterServer {
              this.roomList( socket, callback );
         } );
 
+
+        // This is the only whiteboard event.
+        //
+        //
+        socket.on('whiteboard', ( data ) => {
+            socket.broadcast.to( data.roomname ).emit('whiteboard-draw-line', data);
+        } );
+
+
         // socket.on('broadcast-leave', ( roomname: string, callback: any ) => {    
         //      this.broadcastLeave( socket, roomname, callback );
         // } );
