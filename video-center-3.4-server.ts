@@ -62,6 +62,9 @@ class VideoCenterServer {
         socket.on('whiteboard', ( data ) => {
             socket.broadcast.to( data.roomname ).emit('whiteboard-draw-line', data);
         } );
+        socket.on('whiteboard-clear', ( roomname ) => {
+            this.io.sockets["in"]( roomname ).emit('whiteboard-clear', roomname);
+        } );
 
 
         // socket.on('broadcast-leave', ( roomname: string, callback: any ) => {    
