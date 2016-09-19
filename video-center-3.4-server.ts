@@ -15,17 +15,21 @@ const lobbyRoomName = 'Lobby';
 const Lobby = 'Lobby';
 const EmptyRoomname = '';
 
-
 class VideoCenterServer {
     private io: any;
+    private whiteboard_line_history :Array<any>;//All the whiteboard history will go here
     public users: User = <User>{};
-    constructor() {
+    
+    constructor() {        
         console.log("VideoCenterServer::constructor() ...");
+        //initialize whiteboard
+        this.whiteboard_line_history = new Array();      
     }
     /*-----Listener---*/
     listen(socket, io) {        
         console.log('Someone Connected.');
         this.io = io;
+        
         this.addUser( socket );              
         socket.on('disconnect', () => {      
             this.disconnect( socket );           
@@ -59,19 +63,46 @@ class VideoCenterServer {
         // This is the only whiteboard event.
         //
         //
-        socket.on('whiteboard', ( data ) => {
-            socket.broadcast.to( data.roomname ).emit('whiteboard-draw-line', data);
+        socket.on('whiteboard', ( data ) => {           
+            try { 
+                 // add received line to history              
+                this.whiteboard_line_history[data.room_name].push(data);
+                // send line to all clients
+                socket.broadcast.to( data.room_name ).emit('whiteboard-draw-line', data);
+            }
+            catch ( e ) {
+                //send error message
+                socket.emit( 'error', 'socket.on("whiteboard") Cause: ' + this.get_error_message( e ) );
+                // add receive line to history
+                this.whiteboard_line_history[data.room_name] = [data];
+            }
         } );
+        socket.on('get-whiteboard-draw-line-history', ( roomname ) => {
+            // first send the history to the new client
+            console.log("get-whiteboard-draw-line-history");
+            try {               
+                let lines:any = this.whiteboard_line_history[roomname];
+                for (let i in lines ) {
+                    if ( ! lines.hasOwnProperty(i) ) continue;
+                    let data = lines[i];
+                    socket.emit('whiteboard-draw-line-history', data );
+                }  
+            }
+            catch ( e ) {
+                socket.emit( 'error', 'socket.on("get-whiteboard-draw-line-history") Cause: ' + this.get_error_message( e ) );
+            }
+        });
         socket.on('whiteboard-clear', ( roomname ) => {
             this.io.sockets["in"]( roomname ).emit('whiteboard-clear', roomname);
         } );
 
-
-        // socket.on('broadcast-leave', ( roomname: string, callback: any ) => {    
-        //      this.broadcastLeave( socket, roomname, callback );
-        // } );
-
         
+    }
+    private get_error_message( e ) {
+        var message = 'Unknown';
+        if ( typeof e.message != 'undefined' ) message = e.message;
+        
+        return message;
     }
     
     private pong ( callback: any ) {
@@ -221,26 +252,6 @@ class VideoCenterServer {
             }
         }
         if ( room ) this.io.sockets["in"]( room ).emit('join-room', user);
-
-
-
-
-/*
-
-        if ( prevRoom == lobbyRoomName ) { // leave lobby. Maybe join room.
-            if ( newRoomname != lobbyRoomName ) { // # Case No. 2 and Case No. 3
-                this.io.sockets["in"]( newRoomname ).emit('join-room', user); // tell member of new room
-            }
-            this.io.sockets["in"]( lobbyRoomName ).emit('join-room', user); // tell member of lobby.
-        }
-        else { // His prev room was not lobby. it may be empty.
-            if ( prevRoom ) { // this prev room can be 'empty', 'lobby' or 'other room'.
-                this.io.sockets["in"]( prevRoom ).emit('join-room', user); // tell members of prev room( 'lobby' or 'other room' ) that he is leaving
-            }
-            this.io.sockets["in"]( newRoomname ).emit('join-room', user); // tell member of new room. it can be 'lobby' or other room.
-        }
-
-*/
 
     }
 
