@@ -80,7 +80,7 @@ class VideoCenterServer {
         socket.on('get-whiteboard-draw-line-history', ( roomname ) => {
             // first send the history to the new client
             console.log("get-whiteboard-draw-line-history");
-            try {               
+            try {
                 let lines:any = this.whiteboard_line_history[roomname];
                 for (let i in lines ) {
                     if ( ! lines.hasOwnProperty(i) ) continue;
