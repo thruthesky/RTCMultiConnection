@@ -94,6 +94,14 @@ class VideoCenterServer {
         });
         socket.on('whiteboard-clear', ( roomname ) => {
             this.io.sockets["in"]( roomname ).emit('whiteboard-clear', roomname);
+            try{
+                this.whiteboard_line_history[roomname] = [];
+                delete this.whiteboard_line_history[roomname];
+                
+            }
+            catch ( e ) {
+                socket.emit( 'error', 'socket.on("whiteboard-clear") Cause: ' + this.get_error_message( e ) );
+            }
         } );
 
         
