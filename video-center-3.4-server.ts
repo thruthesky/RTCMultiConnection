@@ -63,7 +63,24 @@ class VideoCenterServer {
         // This is the only whiteboard event.
         //
         //
-        socket.on('whiteboard', ( data ) => {           
+        socket.on('whiteboard', data => this.whiteboard( socket, data ) );
+
+//        socket.on('whiteboard', ( data ) => {           
+ //       } );
+//        socket.on('get-whiteboard-draw-line-history', ( roomname ) => {
+            // first send the history to the new client
+ //       });
+//        socket.on('whiteboard-clear', ( roomname ) => {
+ //       } );
+
+        
+    }
+    private whiteboard( socket, data ) {
+        if ( data.command == 'draw' ) this.whiteboardDraw( socket, data );
+        else if ( data.command == 'clear' ) this.whiteboardClear( socket, data );
+        else if ( data.command == 'history' ) this.whiteboardHistory( socket, data );
+    }
+    private whiteboardDraw( socket, data ) {
             try { 
                  // add received line to history              
                 this.whiteboard_line_history[data.room_name].push(data);
@@ -76,23 +93,12 @@ class VideoCenterServer {
                 // add receive line to history
                 this.whiteboard_line_history[data.room_name] = [data];
             }
-        } );
-        socket.on('get-whiteboard-draw-line-history', ( roomname ) => {
-            // first send the history to the new client
-            console.log("get-whiteboard-draw-line-history");
-            try {
-                let lines:any = this.whiteboard_line_history[roomname];
-                for (let i in lines ) {
-                    if ( ! lines.hasOwnProperty(i) ) continue;
-                    let data = lines[i];
-                    socket.emit('whiteboard-draw-line-history', data );
-                }  
-            }
-            catch ( e ) {
-                socket.emit( 'error', 'socket.on("get-whiteboard-draw-line-history") Cause: ' + this.get_error_message( e ) );
-            }
-        });
-        socket.on('whiteboard-clear', ( roomname ) => {
+
+
+    }
+    private whiteboardClear( socket, data ) {
+        let roomname = data.roomname;
+
             this.io.sockets["in"]( roomname ).emit('whiteboard-clear', roomname);
             try{
                 this.whiteboard_line_history[roomname] = [];
@@ -102,9 +108,23 @@ class VideoCenterServer {
             catch ( e ) {
                 socket.emit( 'error', 'socket.on("whiteboard-clear") Cause: ' + this.get_error_message( e ) );
             }
-        } );
 
-        
+    }
+    private whiteboardHistory( socket, data ) {
+
+            console.log("get-whiteboard-draw-line-history");
+            try {
+                let lines:any = this.whiteboard_line_history[ data.roomname ];
+                for (let i in lines ) {
+                    if ( ! lines.hasOwnProperty(i) ) continue;
+                    let data = lines[i];
+                    socket.emit('whiteboard-draw-line-history', data );
+                }  
+            }
+            catch ( e ) {
+                socket.emit( 'error', 'socket.on("get-whiteboard-draw-line-history") Cause: ' + this.get_error_message( e ) );
+            }
+
     }
     private get_error_message( e ) {
         var message = 'Unknown';
