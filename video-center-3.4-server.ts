@@ -210,6 +210,9 @@ class VideoCenterServer {
         }
         else {
             this.io.sockets.emit('leave-room', user.room );
+            let data :any = { room_name : user.room };
+            data.command = "clear";
+            this.whiteboardClear( socket, data );
             callback();
         }
         
