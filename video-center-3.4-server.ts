@@ -58,20 +58,9 @@ class VideoCenterServer {
         socket.on('room-list', ( callback: any ) => {    
              this.roomList( socket, callback );
         } );
-
-
-        // This is the only whiteboard event.
-        //
-        //
-        socket.on('whiteboard', data => this.whiteboard( socket, data ) );
-
-//        socket.on('whiteboard', ( data ) => {           
- //       } );
-//        socket.on('get-whiteboard-draw-line-history', ( roomname ) => {
-            // first send the history to the new client
- //       });
-//        socket.on('whiteboard-clear', ( roomname ) => {
- //       } );
+        socket.on('whiteboard', data => { 
+            this.whiteboard( socket, data )
+        } );
 
         
     }
@@ -97,13 +86,11 @@ class VideoCenterServer {
 
     }
     private whiteboardClear( socket, data ) {
-        let roomname = data.roomname;
+        let roomname = data.room_name;
 
             this.io.sockets["in"]( roomname ).emit('whiteboard-clear', roomname);
             try{
-                this.whiteboard_line_history[roomname] = [];
-                delete this.whiteboard_line_history[roomname];
-                
+                delete this.whiteboard_line_history[roomname];                
             }
             catch ( e ) {
                 socket.emit( 'error', 'socket.on("whiteboard-clear") Cause: ' + this.get_error_message( e ) );
@@ -114,7 +101,7 @@ class VideoCenterServer {
 
             console.log("get-whiteboard-draw-line-history");
             try {
-                let lines:any = this.whiteboard_line_history[ data.roomname ];
+                let lines:any = this.whiteboard_line_history[ data.room_name ];
                 for (let i in lines ) {
                     if ( ! lines.hasOwnProperty(i) ) continue;
                     let data = lines[i];
