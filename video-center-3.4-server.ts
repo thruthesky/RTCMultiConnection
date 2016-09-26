@@ -61,6 +61,9 @@ class VideoCenterServer {
         socket.on('whiteboard', data => { 
             this.whiteboard( socket, data )
         } );
+        socket.on('room-cast', data => { 
+            socket.broadcast.to( data.roomname ).emit('room-cast', data);
+        } );
 
         
     }
