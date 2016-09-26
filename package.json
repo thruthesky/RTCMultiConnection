@@ -42,7 +42,8 @@
   "dependencies": {
     "extend": "^3.0.0",
     "socket.io": "0.9.17",
-    "util": "^0.10.3"
+    "util": "^0.10.3",
+    "forever": "*"
   },
   "analyze": false,
   "license": "MIT",
@@ -64,6 +65,7 @@
     "grunt-jsbeautifier": "0.2.10",
     "grunt-replace": "0.11.0",
     "load-grunt-tasks": "3.4.0",
+    "typescript": "^1.8.10",
     "typings": "^1.3.2"
   }
 }
