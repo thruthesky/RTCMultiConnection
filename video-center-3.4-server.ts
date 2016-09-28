@@ -71,6 +71,10 @@ class VideoCenterServer {
         if ( data.command == 'draw' ) this.whiteboardDraw( socket, data );
         else if ( data.command == 'clear' ) this.whiteboardClear( socket, data );
         else if ( data.command == 'history' ) this.whiteboardHistory( socket, data );
+        else {
+            let user = this.getUser( socket );
+            socket.broadcast.to( user.room ).emit('whiteboard', data);
+        }
     }
     private whiteboardDraw( socket, data ) {
             try { 
@@ -197,7 +201,7 @@ class VideoCenterServer {
         callback( roomname );           
     }
     private leaveRoom ( socket: any, callback: any ) : void {
-        var user = this.getUser( socket );          
+        var user = this.getUser( socket );
         console.log(user.name + ' leave the room: '+ user.room );     
         socket.leave( user.room );    
         this.io.sockets["in"]( user.room ).emit('remove-user', user);
