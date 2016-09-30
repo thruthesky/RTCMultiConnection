@@ -7,10 +7,12 @@ import extend =require('extend');
 interface User {
     name: string;
     room: string;
-    socket: string; // socket id
+    socket: string
+    type: string;
 }
 
-
+const user_type:string = 'User';
+const admin_type:string = 'Admin';
 const lobbyRoomName = 'Lobby';
 const Lobby = 'Lobby';
 const EmptyRoomname = '';
@@ -39,6 +41,9 @@ class VideoCenterServer {
         } );
         socket.on('update-username', ( username: string, callback:any ) => {
             this.updateUsername( socket, username, callback );            
+        } );
+        socket.on('sign-as-admin', ( username: string, callback:any ) => {
+            this.sign_as_admin( socket, username, callback );            
         } );
         socket.on('create-room', ( roomname: string, callback:any ) => {
             this.createRoom( socket, roomname, callback );
@@ -160,6 +165,7 @@ class VideoCenterServer {
         user.name = 'Anonymous';
         user.room = EmptyRoomname;
         user.socket = socket.id;
+        user.type = user_type;
         this.users[ socket.id ] = user;         
         return this.users[ socket.id ];
     }
@@ -178,15 +184,36 @@ class VideoCenterServer {
         user.name = username;
         return this.setUser( user );
     }
+    private setAdmin ( socket: any ) : User {
+        let user = this.getUser( socket );
+        user.type = admin_type;
+        return this.setUser( user );
+    }
+    private setClient ( socket: any ) : User {
+        let user = this.getUser( socket );
+        user.type = user_type;
+        return this.setUser( user );
+    }
 
     private updateUsername ( socket: any, username: string, callback: any ) : void {
         let user = this.getUser( socket );  
         let oldusername = user.name;
-        user = this.setUsername( socket, username );            
+        user = this.setUsername( socket, username );  
+        this.setClient( socket );           
         console.log(oldusername + " change it's name to "+username);
         console.log( user );
         callback( user );
-        this.io.sockets.emit('update-username', user )
+        this.io.sockets.emit('update-username', user );
+    }
+    private sign_as_admin ( socket: any, username: string, callback: any ) : void {
+        let user = this.getUser( socket );  
+        let oldusername = user.name;
+        user = this.setUsername( socket, username );
+        this.setAdmin( socket );            
+        console.log(oldusername + " change it's name to "+username);
+        console.log( user );
+        callback( user );
+        // this.io.sockets.emit('update-username', user );
     }
 
     /**
