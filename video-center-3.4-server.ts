@@ -51,6 +51,9 @@ class VideoCenterServer {
         socket.on('chat-message', ( message: string, callback:any ) => {            
             this.chatMessage( socket, message, callback );            
         } );
+        socket.on('chat-private-message', ( data, callback:any ) => {            
+            this.chat_private_message( socket, data, callback );            
+        } );
         socket.on('leave-room', ( callback: any ) => {
             this.leaveRoom( socket, callback );
         } ); 
@@ -251,14 +254,20 @@ class VideoCenterServer {
         }
         
     }
-    private chatMessage ( socket: any, message: string, callback: any ) : void {
+    
+    private chat_private_message ( socket: any, data: any, callback: any ) : void {
         let user = this.getUser( socket );
-        this.io.sockets["in"]( user.room ).emit('chatMessage', { message: message, name: user.name+":", room: user.room } );
+        //for sender
+        this.io.sockets.socket( socket.id ).emit('chat-private-message', { message: data.message, name: data.name, pmsocket: data.pmsocket } );
+        //for receiver
+        this.io.sockets.socket( data.pmsocket ).emit('chat-private-message', { message: data.message, name: data.name, pmsocket: socket.id } );
         callback( user );
     }
-
-
-
+    private chatMessage ( socket: any, message: string, callback: any ) : void {
+        let user = this.getUser( socket );
+        this.io.sockets["in"]( user.room ).emit('chatMessage', { message: message, name: user.name, room: user.room } );
+        callback( user );
+    }
     private removeUser ( id: string ) : void {
         delete this.users[ id ]
     }
