@@ -145,7 +145,7 @@ class VideoCenterServer {
 
         if ( user.room != Lobby ) this.io.sockets["in"]( Lobby ).emit('disconnect', user);
         this.io.sockets["in"]( user.room ).emit('disconnect', user);
-
+        this.io.sockets.emit('disconnect-private-message', user );
         this.leaveRoom( socket, () => console.log("You left and disconnect") );
         this.removeUser( socket.id );
         socket.leave( user.room );
