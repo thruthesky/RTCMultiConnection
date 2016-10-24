@@ -126,7 +126,7 @@ app = app.listen(port, process.env.IP || '0.0.0.0', function() {
 });
 
 
-var vcs = require('./video-center-3.4-server.js');
+var vcs = require('./video-center.js');
 var vc = new vcs();
 
 require('./Signaling-Server.js')(app, function(socket, io) {
