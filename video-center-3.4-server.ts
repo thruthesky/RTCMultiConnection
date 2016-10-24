@@ -287,7 +287,7 @@ class VideoCenterServer {
         this.setUser( user );       // update new room on user
         socket.join( newRoomname );
 
-        callback( newRoomname );
+        if ( callback ) callback( newRoomname );
 
         let move_room = !! prevRoom; // He has prev room name. Meaning he was in room or lobby. He is moving into another room. he is not refreshing the browser.
         let move_into_lobby = prevRoom == lobbyRoomName; // He was in another room and he joins 'lobby'. He is not refreshing browser, nor re-connected.
